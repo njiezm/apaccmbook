@@ -194,12 +194,17 @@
 
             let baseScale;
             if (readerShell.classList.contains('fullscreen')) {
-                // Plein écran applicatif : tenir dans le viewport avec marges
-                // PC : barre contrôles ≈ 56px + padding wrapper 2×2rem ≈ 64px → 120px
-                // Mobile : barre flottante coin + padding ≈ 120px
-                const maxW = window.innerWidth  - 64;
-                const maxH = window.innerHeight - 120;
-                baseScale = Math.min(maxW / naturalVP.width, maxH / naturalVP.height);
+                if (window.innerWidth < 1024) {
+                    // Mobile : barre flottante pleine largeur ≈ 56px + padding 0.75rem haut
+                    const maxW = window.innerWidth  - 24;   // 0.75rem × 2
+                    const maxH = window.innerHeight - 12 - 60; // padding haut + barre float
+                    baseScale = Math.min(maxW / naturalVP.width, maxH / naturalVP.height);
+                } else {
+                    // Desktop : barre contrôles ≈ 56px + padding wrapper 2×2rem ≈ 64px → 120px
+                    const maxW = window.innerWidth  - 64;
+                    const maxH = window.innerHeight - 120;
+                    baseScale = Math.min(maxW / naturalVP.width, maxH / naturalVP.height);
+                }
             } else {
                 const containerW = readerBox.clientWidth || readerBox.offsetWidth || 600;
                 baseScale = containerW / naturalVP.width;

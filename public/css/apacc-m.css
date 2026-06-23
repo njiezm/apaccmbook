@@ -2080,6 +2080,10 @@ body.drawer-open { overflow: hidden; }
 
 @media (max-width: 1023px) {
     .ebook-reader { width: 100%; }
+
+    /* Slider réductible sur mobile → évite le débordement du bouton Suivant */
+    .slider-wrapper { min-width: 0; flex: 1; }
+
     .reader-float {
         display: flex;
         position: fixed;
@@ -2091,9 +2095,31 @@ body.drawer-open { overflow: hidden; }
         border-radius: 0;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         justify-content: center;
-        padding: 0.5rem 1rem env(safe-area-inset-bottom, 0.5rem);
+        gap: 0.35rem;
+        padding: 0.4rem 0.5rem env(safe-area-inset-bottom, 0.4rem);
     }
+
     .reader-shell { padding-bottom: 5rem; }
+
+    /* ── Mobile fullscreen : barre pleine largeur en bas (pas de corner pill) ── */
+    .reader-shell.fullscreen .reader-float {
+        bottom: 0;
+        left: 0;
+        right: 0;
+        top: auto;
+        width: 100%;
+        border-radius: 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        justify-content: center;
+        gap: 0.35rem;
+        padding: 0.4rem 0.5rem env(safe-area-inset-bottom, 0.4rem);
+    }
+
+    /* Wrapper mobile fullscreen : laisse 60px en bas pour la barre flottante */
+    .reader-shell.fullscreen #reader-wrapper {
+        padding: 0.75rem 0.75rem 60px 0.75rem !important;
+        overflow: hidden !important;
+    }
 }
 
 /* ══════════════════════════════════════════════
