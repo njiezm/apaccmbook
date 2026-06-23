@@ -70,7 +70,7 @@ Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.'
     Route::post('/settings', [AdminController::class, 'saveSettings'])->name('settings.save');
     Route::get('/ebooks', [AdminEbookController::class, 'index'])->name('ebooks.index');
     Route::post('/ebooks', [AdminEbookController::class, 'store'])->name('ebooks.store');
-    Route::patch('/ebooks/{ebook}', [AdminEbookController::class, 'update'])->name('ebooks.update');
-    Route::delete('/ebooks/{ebook}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
-    Route::patch('/users/{user}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::patch('/ebooks/{ebook:id}', [AdminEbookController::class, 'update'])->name('ebooks.update');
+    Route::delete('/ebooks/{ebook:id}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
+    Route::patch('/users/{user:id}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
 });
