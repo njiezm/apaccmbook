@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Fond cardinal -->
+  <rect width="512" height="512" rx="96" fill="#b91c1c"/>
+  <!-- Arche (motif Narthex) -->
+  <path d="M156 360 L156 220 Q156 140 256 140 Q356 140 356 220 L356 360 Z"
+        fill="none" stroke="#f6f3ef" stroke-width="18" stroke-linejoin="round"/>
+  <!-- Lettre A (Cinzel style) -->
+  <text x="256" y="320" text-anchor="middle" font-family="serif" font-size="130" font-weight="700"
+        fill="#f6f3ef" letter-spacing="-4">A</text>
+</svg>
