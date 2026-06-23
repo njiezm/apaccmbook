@@ -31,27 +31,29 @@ class EbookController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'helloasso_url' => ['required', 'url'],
-            'pdf' => ['required', 'file', 'mimes:pdf', 'max:10240'],
-            'cover' => ['nullable', 'image', 'max:2048'],
+            'title'         => ['required', 'string', 'max:255'],
+            'description'   => ['required', 'string'],
+            'price'         => ['required', 'numeric', 'min:0'],
+            'helloasso_url' => ['nullable', 'url'],
+            'pdf'           => ['required', 'file', 'mimes:pdf', 'max:61440'],
+            'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
 
-        $data['file_path'] = $request->file('pdf')->store('ebooks', 'private');
+        $pdf = $request->file('pdf');
+        $pdfPath = $this->storePdf($pdf);
 
+        $coverImage = null;
         if ($request->hasFile('cover')) {
-            $data['cover_image'] = $request->file('cover')->store('covers', 'public');
+            $coverImage = $request->file('cover')->store('covers', 'public');
         }
 
         $ebook = Ebook::create([
             'title'         => $data['title'],
             'description'   => $data['description'],
             'price'         => $data['price'],
-            'helloasso_url' => $data['helloasso_url'],
-            'file_path'     => $data['file_path'],
-            'cover_image'   => $data['cover_image'] ?? null,
+            'helloasso_url' => $data['helloasso_url'] ?? null,
+            'file_path'     => $pdfPath,
+            'cover_image'   => $coverImage,
             'status'        => 'published',
         ]);
 
@@ -67,33 +69,35 @@ class EbookController extends Controller
     public function update(Request $request, Ebook $ebook)
     {
         $data = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'description' => ['required', 'string'],
-            'price' => ['required', 'numeric', 'min:0'],
-            'helloasso_url' => ['required', 'url'],
-            'pdf' => ['nullable', 'file', 'mimes:pdf', 'max:10240'],
-            'cover' => ['nullable', 'image', 'max:2048'],
+            'title'         => ['required', 'string', 'max:255'],
+            'description'   => ['required', 'string'],
+            'price'         => ['required', 'numeric', 'min:0'],
+            'helloasso_url' => ['nullable', 'url'],
+            'pdf'           => ['nullable', 'file', 'mimes:pdf', 'max:61440'],
+            'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
 
+        $filePath = $ebook->file_path;
         if ($request->hasFile('pdf')) {
             Storage::disk('private')->delete($ebook->file_path);
-            $data['file_path'] = $request->file('pdf')->store('ebooks', 'private');
+            $filePath = $this->storePdf($request->file('pdf'));
         }
 
+        $coverImage = $ebook->cover_image;
         if ($request->hasFile('cover')) {
             if ($ebook->cover_image) {
                 Storage::disk('public')->delete($ebook->cover_image);
             }
-            $data['cover_image'] = $request->file('cover')->store('covers', 'public');
+            $coverImage = $request->file('cover')->store('covers', 'public');
         }
 
         $ebook->update([
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'price' => $data['price'],
-            'helloasso_url' => $data['helloasso_url'],
-            'file_path' => $data['file_path'] ?? $ebook->file_path,
-            'cover_image' => $data['cover_image'] ?? $ebook->cover_image,
+            'title'         => $data['title'],
+            'description'   => $data['description'],
+            'price'         => $data['price'],
+            'helloasso_url' => $data['helloasso_url'] ?? $ebook->helloasso_url,
+            'file_path'     => $filePath,
+            'cover_image'   => $coverImage,
         ]);
 
         return back()->with('status', "Ebook « {$ebook->title} » mis à jour.");
@@ -108,6 +112,50 @@ class EbookController extends Controller
         $ebook->delete();
 
         return back()->with('status', 'Ebook supprimé de la médiathèque.');
+    }
+
+    private function storePdf(\Illuminate\Http\UploadedFile $file): string
+    {
+        $destination = 'ebooks/' . \Illuminate\Support\Str::uuid() . '.pdf';
+        $fullPath     = storage_path('app/private/' . $destination);
+
+        // Try Ghostscript compression first (reduces size significantly)
+        $gs = $this->ghostscriptPath();
+        if ($gs && $file->getSize() > 5 * 1024 * 1024) {
+            $tmpIn  = $file->getRealPath();
+            $tmpOut = sys_get_temp_dir() . '/' . uniqid('gs_') . '.pdf';
+            $cmd    = escapeshellcmd($gs)
+                . ' -sDEVICE=pdfwrite -dCompatibilityLevel=1.4'
+                . ' -dPDFSETTINGS=/ebook'
+                . ' -dNOPAUSE -dQUIET -dBATCH'
+                . ' -sOutputFile=' . escapeshellarg($tmpOut)
+                . ' ' . escapeshellarg($tmpIn);
+
+            @exec($cmd, output: $_, result_code: $code);
+
+            if ($code === 0 && file_exists($tmpOut) && filesize($tmpOut) > 0) {
+                @mkdir(dirname($fullPath), 0755, true);
+                rename($tmpOut, $fullPath);
+                @unlink($tmpIn);
+                return $destination;
+            }
+            @unlink($tmpOut);
+        }
+
+        // Fallback: store as-is
+        $file->storeAs('ebooks', basename($destination), 'private');
+        return $destination;
+    }
+
+    private function ghostscriptPath(): ?string
+    {
+        foreach (['gs', 'gswin64c', 'gswin32c'] as $bin) {
+            $path = trim((string) @shell_exec('which ' . escapeshellarg($bin) . ' 2>/dev/null'));
+            if ($path && file_exists($path)) {
+                return $path;
+            }
+        }
+        return null;
     }
 
     public function toggleAdmin(User $user)
