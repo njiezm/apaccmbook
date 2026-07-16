@@ -4,12 +4,18 @@
 
 @section('styles')
 <style>
-/* Sur la page lecture : masquer le bottom-nav du site et le footer,
-   sinon ils recouvrent la barre de commandes du lecteur en bas sur mobile. */
-.mobile-bottom-nav { display: none !important; }
+/* Page lecture : on garde le menu du site en bas sur mobile ; le footer n'est pas utile ici. */
 .site-footer { display: none !important; }
-body { padding-bottom: 0 !important; }
 .reader-float { z-index: 500; }
+
+@media (max-width: 768px) {
+    /* Commandes du lecteur (page/zoom/plein écran) juste AU-DESSUS du menu du site (~64px) */
+    .reader-shell:not(.fullscreen) .reader-float {
+        bottom: calc(64px + env(safe-area-inset-bottom, 0)) !important;
+    }
+    /* Espace bas = menu du site (~64px) + barre de commandes (~56px) */
+    .reader-shell:not(.fullscreen) { padding-bottom: 124px !important; }
+}
 
 /* ── Reader base ── */
 .ebook-reader {
