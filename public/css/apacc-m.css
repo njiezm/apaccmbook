@@ -2045,6 +2045,11 @@ body.drawer-open { overflow: hidden; }
     .reader-shell ~ .mobile-bottom-nav {
         display: none;
     }
+
+    /* Footer masqué sur mobile (navigation via la barre du bas ; gain de place) */
+    .site-footer {
+        display: none;
+    }
 }
 
 /* === PWA — Splash / standalone overrides === */

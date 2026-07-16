@@ -9,12 +9,13 @@
 .reader-float { z-index: 500; }
 
 @media (max-width: 768px) {
-    /* Commandes du lecteur (page/zoom/plein écran) juste AU-DESSUS du menu du site (~64px) */
+    /* Commandes du lecteur juste AU-DESSUS du menu du site.
+       Valeur de repli : le JS l'aligne précisément sur la hauteur réelle du menu. */
     .reader-shell:not(.fullscreen) .reader-float {
-        bottom: calc(64px + env(safe-area-inset-bottom, 0)) !important;
+        bottom: calc(64px + env(safe-area-inset-bottom, 0));
     }
-    /* Espace bas = menu du site (~64px) + barre de commandes (~56px) */
-    .reader-shell:not(.fullscreen) { padding-bottom: 124px !important; }
+    /* Espace bas = menu du site + barre de commandes */
+    .reader-shell:not(.fullscreen) { padding-bottom: 128px !important; }
 }
 
 /* ── Reader base ── */
@@ -23,7 +24,30 @@
     min-height: 300px;
     overflow: visible;
     background: #111;
+    /* Anti-sélection / anti-copie du contenu */
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
 }
+#pdf-canvas { pointer-events: auto; -webkit-user-drag: none; }
+
+/* ── Protection : masque le rendu quand la fenêtre perd le focus ── */
+#reader-guard {
+    display: none;
+    position: absolute;
+    inset: 0;
+    z-index: 50;
+    background: #0a0a0a;
+    color: rgba(255,255,255,0.85);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    line-height: 1.5;
+}
+.reader-guarded #reader-guard { display: flex; }
+.reader-guarded #pdf-canvas { filter: blur(22px); }
 .ebook-reader canvas {
     display: block;
 }
@@ -126,6 +150,11 @@
             <canvas id="pdf-canvas" style="display:none;"></canvas>
             <div class="reader-overlay" id="reader-overlay">
                 <p>Lecture sécurisée — le PDF ne peut pas être téléchargé.</p>
+            </div>
+            {{-- Protection : masque le contenu dès que la fenêtre perd le focus (capture/enregistrement) --}}
+            <div id="reader-guard" aria-hidden="true">
+                <span style="font-size:2rem;">🔒</span>
+                <p style="margin:0.5rem 0 0;">Contenu protégé masqué.<br>Revenez sur la page pour reprendre la lecture.</p>
             </div>
         </div>
     </div>
@@ -236,7 +265,12 @@
             let baseScale;
             if (readerShell.classList.contains('fullscreen')) {
                 const { w, h } = fsMaxDims();
-                baseScale = Math.min(w / naturalVP.width, h / naturalVP.height);
+                const isMobile = window.innerWidth < 1024;
+                // Mobile : la page A4 remplit la largeur (échelle A4, défilement vertical).
+                // Desktop : la page entière tient à l'écran.
+                baseScale = isMobile
+                    ? (w / naturalVP.width)
+                    : Math.min(w / naturalVP.width, h / naturalVP.height);
             } else {
                 const containerW = readerBox.clientWidth || readerBox.offsetWidth || 600;
                 baseScale = containerW / naturalVP.width;
@@ -325,8 +359,25 @@
 
         if (fullscreenBtn) fullscreenBtn.textContent   = entering ? 'Quitter' : 'Plein écran';
         if (floatFullscreen) floatFullscreen.textContent = entering ? '✕' : '⛶';
+        alignReaderFloat();
         if (pdfDoc) queueRender(pageNum);
     };
+
+    // Aligne précisément la barre de commandes juste au-dessus du menu du site (mobile)
+    const siteBottomNav = document.querySelector('.mobile-bottom-nav');
+    const readerFloatEl = document.getElementById('reader-float');
+    function alignReaderFloat() {
+        if (!readerFloatEl) return;
+        const mobile = window.matchMedia('(max-width: 768px)').matches;
+        const fs = readerShell.classList.contains('fullscreen');
+        if (mobile && !fs && siteBottomNav && getComputedStyle(siteBottomNav).display !== 'none') {
+            readerFloatEl.style.setProperty('bottom', siteBottomNav.offsetHeight + 'px', 'important');
+        } else {
+            readerFloatEl.style.removeProperty('bottom');
+        }
+    }
+    window.addEventListener('resize', alignReaderFloat);
+    document.addEventListener('DOMContentLoaded', alignReaderFloat);
 
     // ── Glisser pour déplacer (pan) quand le document dépasse l'écran ──
     let isPanning = false, panStartX = 0, panStartY = 0, panLeft = 0, panTop = 0;
@@ -405,6 +456,32 @@
             else        showPage(pageNum - 1);   // swipe vers la droite → page précédente
         }
     }, { passive: true });
+
+    // ── Protection anti-capture / anti-enregistrement (dissuasion) ──
+    const guardOn  = () => readerShell.classList.add('reader-guarded');
+    const guardOff = () => readerShell.classList.remove('reader-guarded');
+
+    // Masque le contenu dès que la page perd le focus / est masquée
+    document.addEventListener('visibilitychange', () => document.hidden ? guardOn() : guardOff());
+    window.addEventListener('blur',  guardOn);
+    window.addEventListener('focus', guardOff);
+
+    // Touche « Impr. écran » : tentative d'effacement du presse-papier + masquage bref
+    document.addEventListener('keyup', (e) => {
+        if (e.key === 'PrintScreen') {
+            try { navigator.clipboard.writeText(''); } catch (_) {}
+            guardOn();
+            setTimeout(guardOff, 1200);
+        }
+    });
+
+    // Bloque impression / enregistrement / outils développeur
+    document.addEventListener('keydown', (e) => {
+        const k = (e.key || '').toLowerCase();
+        if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')) e.preventDefault();
+        if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 's'].includes(k)) e.preventDefault();
+        if (k === 'f12') e.preventDefault();
+    });
 
     // ── Chargement PDF ────────────────────────────────────────
     const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
