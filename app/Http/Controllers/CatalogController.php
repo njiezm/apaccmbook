@@ -105,7 +105,26 @@ class CatalogController extends Controller
             return redirect()->route('ebooks.show', $ebook)->with('error', 'Vous devez avoir un achat validé pour lire cet eBook.');
         }
 
-        return view('ebooks.read', compact('ebook'));
+        // Reprise de lecture : dernière page enregistrée
+        $startPage = \App\Models\ReadingProgress::where('user_id', $user->id)
+            ->where('ebook_id', $ebook->id)
+            ->value('last_page') ?? 1;
+
+        return view('ebooks.read', compact('ebook', 'startPage'));
+    }
+
+    public function saveProgress(Request $request, Ebook $ebook)
+    {
+        $data = $request->validate([
+            'page' => ['required', 'integer', 'min:1'],
+        ]);
+
+        \App\Models\ReadingProgress::updateOrCreate(
+            ['user_id' => auth()->id(), 'ebook_id' => $ebook->id],
+            ['last_page' => $data['page']]
+        );
+
+        return response()->json(['ok' => true]);
     }
 
     public function servePdf(Ebook $ebook)

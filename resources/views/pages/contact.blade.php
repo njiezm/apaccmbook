@@ -23,6 +23,10 @@
 
             <form method="POST" action="{{ route('contact.store') }}" style="background:var(--white);border:1px solid var(--border-light);border-radius:var(--radius-md);padding:2rem;box-shadow:var(--shadow-soft);">
                 @csrf
+                {{-- Anti-spam : champ piège caché (ne pas remplir) --}}
+                <div style="position:absolute;left:-9999px;" aria-hidden="true">
+                    <label>Ne pas remplir<input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+                </div>
 
                 <div class="contact-form-group">
                     <label for="name">Nom complet</label>

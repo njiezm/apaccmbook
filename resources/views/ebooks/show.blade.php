@@ -416,6 +416,12 @@
                 </div>
                 @if($review->title)<p style="font-weight:600;margin:0 0 0.2rem;">{{ $review->title }}</p>@endif
                 @if($review->content)<p style="margin:0;color:var(--text-secondary);font-size:0.92rem;line-height:1.6;">{{ $review->content }}</p>@endif
+                @can('manage-ebooks')
+                    <form method="POST" action="{{ route('admin.reviews.destroy', $review) }}" onsubmit="return confirm('Supprimer cet avis ?')" style="margin:0.4rem 0 0;">
+                        @csrf @method('DELETE')
+                        <button type="submit" style="background:none;border:none;color:var(--cardinal);cursor:pointer;font-size:0.78rem;text-decoration:underline;padding:0;">Supprimer (modération)</button>
+                    </form>
+                @endcan
             </div>
         @empty
             <p style="color:var(--text-muted);">Soyez le premier à donner votre avis sur cet ouvrage.</p>

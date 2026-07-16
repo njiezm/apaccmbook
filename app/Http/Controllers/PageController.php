@@ -21,6 +21,11 @@ class PageController extends Controller
 
     public function contactStore(Request $request)
     {
+        // Anti-spam : champ piège (honeypot) rempli uniquement par les bots
+        if ($request->filled('website')) {
+            return back()->with('success', 'Message envoyé avec succès !');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email',

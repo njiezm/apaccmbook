@@ -177,7 +177,9 @@
 
     // ── État ──────────────────────────────────────────────────
     let pdfDoc         = null;
-    let pageNum        = 1;
+    let pageNum        = {{ (int) ($startPage ?? 1) }};   // reprise de lecture
+    const PROGRESS_URL = "{{ route('ebooks.progress', $ebook) }}";
+    const CSRF_TOKEN   = document.querySelector('meta[name="csrf-token"]')?.content;
     let pageRendering  = false;
     let pageNumPending = null;
     let scaleRatio     = 1;
@@ -275,6 +277,25 @@
         if (pageRendering) { pageNumPending = num; } else { renderPage(num); }
     };
 
+    // ── Reprise de lecture : sauvegarde débattue de la page courante ──
+    let progressTimer = null;
+    const saveProgress = () => {
+        if (!CSRF_TOKEN) return;
+        clearTimeout(progressTimer);
+        progressTimer = setTimeout(() => {
+            fetch(PROGRESS_URL, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': CSRF_TOKEN,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ page: pageNum }),
+            }).catch(() => {});
+        }, 800);
+    };
+
     const showPage = (num) => {
         if (!pdfDoc || num < 1 || num > pdfDoc.numPages) return;
         pageNum = num;
@@ -284,6 +305,7 @@
             readerWrapper.scrollLeft = 0;
         }
         queueRender(pageNum);
+        saveProgress();
     };
 
     const applyZoom = (dir) => {
@@ -399,6 +421,8 @@
         .then(buf => pdfjsLib.getDocument({ data: buf }).promise)
         .then(pdf => {
             pdfDoc = pdf;
+            // Borne la page de reprise au nombre réel de pages
+            pageNum = Math.min(Math.max(1, pageNum), pdf.numPages);
             if (pageSlider) pageSlider.max = pdf.numPages;
             updateZoom();
             setIndicator();

@@ -148,7 +148,9 @@
 {{-- ════════════════════ NEWSLETTER ════════════════════ --}}
 <section class="newsletter-section" x-data="{
     email: '',
+    website: '',
     errorMsg: '',
+    successMsg: '',
     loading: false,
     done: false,
     async submit() {
@@ -162,9 +164,11 @@
                     'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
                     'Accept': 'application/json'
                 },
-                body: JSON.stringify({ email: this.email })
+                body: JSON.stringify({ email: this.email, website: this.website })
             });
             if (res.ok) {
+                const data = await res.json();
+                this.successMsg = data.message ?? 'Merci !';
                 this.done = true;
                 this.email = '';
             } else {
@@ -181,13 +185,12 @@
     <h3>Recevez nos nouvelles parutions</h3>
     <p>Inscrivez-vous pour être alerté des nouvelles publications et des actualités de l'APACC-M.</p>
 
-    <div x-cloak x-show="done" class="flash-success" style="max-width:460px;margin:0 auto 1.25rem;">
-        Merci ! Vous êtes inscrit(e) à notre newsletter.
-    </div>
+    <div x-cloak x-show="done" class="flash-success" style="max-width:460px;margin:0 auto 1.25rem;" x-text="successMsg"></div>
 
     <div x-cloak x-show="errorMsg" class="flash-error" style="max-width:460px;margin:0 auto 1.25rem;" x-text="errorMsg"></div>
 
     <form class="newsletter-form" @submit.prevent="submit" x-show="!done">
+        <input type="text" x-model="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;" aria-hidden="true">
         <input type="email" x-model="email" placeholder="Votre adresse email" required :disabled="loading">
         <button type="submit" class="btn-primary" :disabled="loading" style="display:inline-flex;align-items:center;gap:0.45rem;min-width:110px;justify-content:center;">
             <span x-cloak x-show="loading" style="width:14px;height:14px;border:2px solid rgba(255,255,255,0.35);border-top-color:white;border-radius:50%;animation:spin 0.65s linear infinite;flex-shrink:0;"></span>

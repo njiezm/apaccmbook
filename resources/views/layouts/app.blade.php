@@ -262,6 +262,18 @@
     </button>
 </nav>
 
+{{-- ═══════════════ BANDEAU COOKIES (RGPD) ═══════════════ --}}
+<div x-data="{ show: false }" x-init="show = !localStorage.getItem('cookieConsent')" x-cloak x-show="show"
+     class="cookie-banner"
+     style="position:fixed;bottom:0;left:0;right:0;z-index:2500;background:#1a1a1a;color:#fff;padding:0.9rem 1rem;display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap;font-size:0.85rem;box-shadow:0 -4px 20px rgba(0,0,0,0.25);">
+    <span style="max-width:640px;line-height:1.5;">
+        🍪 Ce site utilise uniquement des cookies nécessaires à son bon fonctionnement (session, sécurité). Aucun traceur publicitaire.
+        <a href="{{ route('privacy') }}" style="color:#fff;text-decoration:underline;">En savoir plus</a>.
+    </span>
+    <button type="button" @click="localStorage.setItem('cookieConsent','1'); show=false"
+            class="btn-primary" style="white-space:nowrap;padding:0.45rem 1.2rem;">J'ai compris</button>
+</div>
+
 <!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>

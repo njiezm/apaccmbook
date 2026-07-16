@@ -21,13 +21,14 @@ Route::get('/ebooks', [CatalogController::class, 'index'])->name('ebooks.index')
 Route::get('/ebooks/{ebook}', [CatalogController::class, 'show'])->name('ebooks.show');
 
 // Newsletter
-Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
+Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->middleware('throttle:6,1')->name('newsletter.subscribe');
+Route::get('/newsletter/confirm', [NewsletterController::class, 'confirm'])->name('newsletter.confirm');
 Route::get('/newsletter/unsubscribe', [NewsletterController::class, 'unsubscribe'])->name('newsletter.unsubscribe');
 
 // Pages
 Route::get('/about', [PageController::class, 'about'])->name('about');
 Route::get('/contact', [PageController::class, 'contact'])->name('contact');
-Route::post('/contact', [PageController::class, 'contactStore'])->name('contact.store');
+Route::post('/contact', [PageController::class, 'contactStore'])->middleware('throttle:6,1')->name('contact.store');
 Route::get('/terms', [PageController::class, 'terms'])->name('terms');
 Route::get('/privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('/legal', [PageController::class, 'legal'])->name('legal');
@@ -37,13 +38,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-ebooks', [CatalogController::class, 'mine'])->name('ebooks.mine');
     Route::get('/ebook/{ebook}/read', [CatalogController::class, 'read'])->middleware('verified')->name('ebooks.read');
     Route::get('/ebook/{ebook}/pdf', [CatalogController::class, 'servePdf'])->middleware('verified')->name('ebooks.pdf');
+    Route::post('/ebook/{ebook}/progress', [CatalogController::class, 'saveProgress'])->middleware('verified')->name('ebooks.progress');
 
     // Liste d'envies
     Route::get('/wishlist', [\App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
     Route::post('/wishlist/{ebook}', [\App\Http\Controllers\WishlistController::class, 'toggle'])->name('wishlist.toggle');
 
     // Avis / notes
-    Route::post('/ebooks/{ebook}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::post('/ebooks/{ebook}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->middleware('throttle:10,1')->name('reviews.store');
     Route::delete('/ebooks/{ebook}/reviews', [\App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
 
     // Codes promo (application sur la fiche)
@@ -92,6 +94,9 @@ Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.'
     Route::delete('/ebooks/{ebook:id}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
     Route::patch('/users/{user:id}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::delete('/users/{user:id}', [AdminEbookController::class, 'destroyUser'])->name('users.destroy');
+
+    // Modération des avis
+    Route::delete('/reviews/{review}', [AdminEbookController::class, 'destroyReview'])->name('reviews.destroy');
 
     // Coupons de réduction
     Route::post('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'store'])->name('coupons.store');

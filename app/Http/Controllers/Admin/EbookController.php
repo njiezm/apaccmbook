@@ -186,6 +186,13 @@ class EbookController extends Controller
         return back()->with('status', "Le rôle administrateur de {$user->name} a été mis à jour.");
     }
 
+    public function destroyReview(\App\Models\Review $review)
+    {
+        $review->delete();
+
+        return back()->with('status', 'Avis supprimé.');
+    }
+
     public function destroyUser(User $user)
     {
         if ($user->id === auth()->id()) {
