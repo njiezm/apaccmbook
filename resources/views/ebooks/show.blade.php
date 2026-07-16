@@ -114,6 +114,32 @@
 
             <h1>{{ $ebook->title }}</h1>
 
+            {{-- Note moyenne + liste d'envies --}}
+            @php $avg = round($ebook->avg_rating, 1); $rc = $ebook->reviews_count; @endphp
+            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;margin:0.35rem 0 0.5rem;">
+                @if($rc > 0)
+                    <a href="#avis" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;color:var(--text-secondary);">
+                        <span style="color:#f5a623;letter-spacing:1px;">
+                            @for($i = 1; $i <= 5; $i++){{ $i <= round($avg) ? '★' : '☆' }}@endfor
+                        </span>
+                        <span style="font-size:0.85rem;">{{ number_format($avg, 1, ',', '') }} · {{ $rc }} avis</span>
+                    </a>
+                @else
+                    <span style="font-size:0.85rem;color:var(--text-muted);">Pas encore d'avis</span>
+                @endif
+
+                @auth
+                    @php $inWishlist = auth()->user()->wishlists->contains('ebook_id', $ebook->id); @endphp
+                    <form method="POST" action="{{ route('wishlist.toggle', $ebook) }}" style="margin:0;">
+                        @csrf
+                        <button type="submit" style="background:none;border:1px solid var(--border-light);border-radius:999px;padding:0.3rem 0.8rem;cursor:pointer;display:inline-flex;align-items:center;gap:0.4rem;color:{{ $inWishlist ? 'var(--cardinal,#b91c1c)' : 'var(--text-secondary)' }};font-size:0.82rem;">
+                            <i class="fa-{{ $inWishlist ? 'solid' : 'regular' }} fa-heart"></i>
+                            {{ $inWishlist ? 'Dans mes envies' : 'Ajouter à mes envies' }}
+                        </button>
+                    </form>
+                @endauth
+            </div>
+
             {{-- Métadonnées --}}
             <div class="product-meta">
                 @if($ebook->author)
@@ -142,14 +168,53 @@
             @endif
 
             {{-- Bloc achat --}}
-            <div class="product-purchase-box">
+            @php
+                // Coupon éventuellement appliqué (session)
+                $appliedCoupon = null;
+                if (!$ebook->is_free && ($sc = session('coupon_' . $ebook->id))) {
+                    $c = \App\Models\Coupon::where('code', $sc)->first();
+                    if ($c && $c->isValidForEbook($ebook)) {
+                        $appliedCoupon = $c;
+                    }
+                }
+                $displayPrice = $appliedCoupon ? $appliedCoupon->finalPrice((float) $ebook->price) : (float) $ebook->price;
+            @endphp
+            <div class="product-purchase-box" id="achat">
                 <div class="product-price-block" style="margin-bottom:1rem;">
                     @if($ebook->is_free)
                         <span style="color:var(--cardinal,#b91c1c);">Gratuit</span>
+                    @elseif($appliedCoupon)
+                        <span style="text-decoration:line-through;color:var(--text-muted);font-size:0.7em;">{{ number_format($ebook->price, 2, ',', ' ') }} €</span>
+                        <span style="color:var(--cardinal,#b91c1c);">{{ number_format($displayPrice, 2, ',', ' ') }} €</span>
                     @else
                         {{ number_format($ebook->price, 2, ',', ' ') }} €
                     @endif
                 </div>
+
+                @if(session('coupon_error'))
+                    <p style="color:var(--cardinal,#b91c1c);font-size:0.82rem;margin:0 0 0.75rem;">{{ session('coupon_error') }}</p>
+                @endif
+
+                {{-- Code promo (pour un achat payant, non encore validé) --}}
+                @auth
+                    @if(!$ebook->is_free && (!$purchase || $purchase->payment_status !== \App\Models\Purchase::STATUS_PAID))
+                        @if($appliedCoupon)
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;background:#ecfdf5;border:1px solid #10b981;border-radius:var(--radius);padding:0.5rem 0.75rem;margin-bottom:0.75rem;">
+                                <span style="font-size:0.82rem;color:#065f46;">Code <strong>{{ $appliedCoupon->code }}</strong> appliqué</span>
+                                <form method="POST" action="{{ route('coupon.remove', $ebook) }}" style="margin:0;">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" style="background:none;border:none;color:#065f46;cursor:pointer;font-size:0.82rem;text-decoration:underline;">Retirer</button>
+                                </form>
+                            </div>
+                        @else
+                            <form method="POST" action="{{ route('coupon.apply', $ebook) }}" style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+                                @csrf
+                                <input type="text" name="code" placeholder="Code promo" style="flex:1;text-transform:uppercase;" maxlength="50">
+                                <button type="submit" class="btn-secondary" style="font-size:0.82rem;white-space:nowrap;">Appliquer</button>
+                            </form>
+                        @endif
+                    @endif
+                @endauth
 
                 @php $methods = $paymentSettings['enabled_methods'] ?? ['helloasso']; @endphp
 
@@ -290,6 +355,71 @@
                 @endcan
             </div>
         </div>
+    </div>
+
+    {{-- ══════ AVIS ══════ --}}
+    @php
+        $reviews = $ebook->reviews()->where('status', 'approved')->with('user')->latest()->get();
+        $myReview = auth()->check() ? $reviews->firstWhere('user_id', auth()->id()) : null;
+    @endphp
+    <div id="avis" style="margin-top:4rem;">
+        <div class="narthex-line" style="margin-bottom:2rem;"></div>
+        <span class="section-label">Avis des lecteurs</span>
+        <h2 style="font-size:1.5rem;margin-bottom:0.5rem;">
+            {{ $reviews->count() }} avis
+            @if($reviews->count())
+                — <span style="color:#f5a623;">{{ number_format(round($ebook->avg_rating, 1), 1, ',', '') }}/5</span>
+            @endif
+        </h2>
+
+        {{-- Formulaire d'avis (membre connecté) --}}
+        @auth
+            <div style="background:var(--cream,#f8f7f4);border:1px solid var(--border-light);border-radius:var(--radius);padding:1.25rem;margin:1.25rem 0 2rem;max-width:640px;">
+                <p style="font-weight:700;margin:0 0 0.75rem;">{{ $myReview ? 'Modifier mon avis' : 'Laisser un avis' }}</p>
+                <form method="POST" action="{{ route('reviews.store', $ebook) }}">
+                    @csrf
+                    <div style="display:flex;flex-direction:column;gap:0.6rem;">
+                        <label style="font-size:0.85rem;">
+                            Note
+                            <select name="rating" required style="width:100%;margin-top:0.25rem;">
+                                @for($i = 5; $i >= 1; $i--)
+                                    <option value="{{ $i }}" {{ $myReview && $myReview->rating == $i ? 'selected' : '' }}>{{ str_repeat('★', $i) }} ({{ $i }}/5)</option>
+                                @endfor
+                            </select>
+                        </label>
+                        <input type="text" name="title" maxlength="255" placeholder="Titre (optionnel)" value="{{ $myReview->title ?? '' }}">
+                        <textarea name="content" rows="3" maxlength="2000" placeholder="Votre commentaire (optionnel)">{{ $myReview->content ?? '' }}</textarea>
+                        <div style="display:flex;gap:0.6rem;">
+                            <button type="submit" class="btn-primary" style="font-size:0.85rem;">{{ $myReview ? 'Mettre à jour' : 'Publier mon avis' }}</button>
+                            @if($myReview)
+                                <button type="submit" form="delete-review" class="btn-secondary" style="font-size:0.85rem;">Supprimer</button>
+                            @endif
+                        </div>
+                    </div>
+                </form>
+                @if($myReview)
+                    <form method="POST" action="{{ route('reviews.destroy', $ebook) }}" id="delete-review">@csrf @method('DELETE')</form>
+                @endif
+            </div>
+        @else
+            <p style="color:var(--text-muted);font-size:0.9rem;margin:1rem 0 2rem;"><a href="{{ route('login') }}" style="color:var(--cardinal);font-weight:700;">Connectez-vous</a> pour laisser un avis.</p>
+        @endauth
+
+        {{-- Liste des avis --}}
+        @forelse($reviews as $review)
+            <div style="border-bottom:1px solid var(--border-light);padding:1rem 0;max-width:760px;">
+                <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.3rem;">
+                    <strong style="font-size:0.92rem;">{{ $review->user->name ?? 'Membre' }}</strong>
+                    <span style="color:#f5a623;font-size:0.9rem;">@for($i = 1; $i <= 5; $i++){{ $i <= $review->rating ? '★' : '☆' }}@endfor</span>
+                    <span style="color:var(--text-muted);font-size:0.78rem;">{{ $review->created_at->format('d/m/Y') }}</span>
+                    @if(auth()->id() === $review->user_id)<span style="font-size:0.72rem;color:var(--cardinal);">(vous)</span>@endif
+                </div>
+                @if($review->title)<p style="font-weight:600;margin:0 0 0.2rem;">{{ $review->title }}</p>@endif
+                @if($review->content)<p style="margin:0;color:var(--text-secondary);font-size:0.92rem;line-height:1.6;">{{ $review->content }}</p>@endif
+            </div>
+        @empty
+            <p style="color:var(--text-muted);">Soyez le premier à donner votre avis sur cet ouvrage.</p>
+        @endforelse
     </div>
 
     {{-- ══════ RECOMMANDATIONS ══════ --}}

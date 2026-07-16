@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Coupon;
 use App\Models\Ebook;
 use App\Models\User;
 use App\Models\Purchase;
@@ -36,11 +37,12 @@ class AdminController extends Controller
         $purchases = Purchase::with(['user', 'ebook'])->latest()->get();
         $users    = User::orderBy('name')->get();
         $categories = Category::orderBy('name')->get();
+        $coupons  = Coupon::with('ebook')->latest()->get();
 
         $paymentSettings = $this->loadPaymentSettings();
 
         return view('admin.dashboard', compact(
-            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'categories', 'paymentSettings'
+            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'categories', 'coupons', 'paymentSettings'
         ));
     }
 

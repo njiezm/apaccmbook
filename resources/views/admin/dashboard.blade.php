@@ -58,6 +58,12 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
                 Paiements
             </button>
+
+            <button class="admin-sidebar-item" :class="{ active: tab === 'coupons' }" @click="tab = 'coupons'">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a2 2 0 0 1 2-2V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v3a2 2 0 0 1 0 4v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a2 2 0 0 1-2-2z"/><line x1="13" y1="5" x2="13" y2="19"/></svg>
+                Coupons
+                <span class="admin-sidebar-badge" style="background:var(--text-muted);">{{ $coupons->count() }}</span>
+            </button>
         </nav>
 
         <div style="margin-top:auto;">

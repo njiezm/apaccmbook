@@ -4,6 +4,13 @@
 
 @section('styles')
 <style>
+/* Sur la page lecture : masquer le bottom-nav du site et le footer,
+   sinon ils recouvrent la barre de commandes du lecteur en bas sur mobile. */
+.mobile-bottom-nav { display: none !important; }
+.site-footer { display: none !important; }
+body { padding-bottom: 0 !important; }
+.reader-float { z-index: 500; }
+
 /* ── Reader base ── */
 .ebook-reader {
     aspect-ratio: unset !important;

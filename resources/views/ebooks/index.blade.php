@@ -105,11 +105,28 @@
             <div class="catalog-grid">
                 @forelse($ebooks as $ebook)
                     <article class="ebook-card reveal">
-                        @if($ebook->cover_image)
-                            <img class="ebook-card__cover" src="{{ asset('storage/' . $ebook->cover_image) }}" alt="{{ $ebook->title }}" loading="lazy">
-                        @else
-                            <div class="ebook-card__cover-placeholder">📖</div>
-                        @endif
+                        <div style="position:relative;">
+                            @if($ebook->cover_image)
+                                <img class="ebook-card__cover" src="{{ asset('storage/' . $ebook->cover_image) }}" alt="{{ $ebook->title }}" loading="lazy">
+                            @else
+                                <div class="ebook-card__cover-placeholder">📖</div>
+                            @endif
+                            @auth
+                                @php $inWishlist = auth()->user()->wishlists->contains('ebook_id', $ebook->id); @endphp
+                                <form method="POST" action="{{ route('wishlist.toggle', $ebook) }}" style="position:absolute;top:0.5rem;right:0.5rem;margin:0;">
+                                    @csrf
+                                    <button type="submit" title="{{ $inWishlist ? 'Retirer de mes envies' : 'Ajouter à mes envies' }}"
+                                            style="width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.92);box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;display:flex;align-items:center;justify-content:center;color:{{ $inWishlist ? 'var(--cardinal,#b91c1c)' : '#888' }};">
+                                        <i class="fa-{{ $inWishlist ? 'solid' : 'regular' }} fa-heart"></i>
+                                    </button>
+                                </form>
+                            @else
+                                <a href="{{ route('login') }}" title="Connectez-vous pour ajouter à vos envies"
+                                   style="position:absolute;top:0.5rem;right:0.5rem;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.92);box-shadow:0 2px 8px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;color:#888;text-decoration:none;">
+                                    <i class="fa-regular fa-heart"></i>
+                                </a>
+                            @endauth
+                        </div>
 
                         <div class="ebook-card__body">
                             @if($ebook->category)
