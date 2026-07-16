@@ -50,6 +50,7 @@ class RegisteredUserController extends Controller
 
         Mail::to($user->email)->queue(new WelcomeMail($user));
 
-        return redirect(route('home', absolute: false));
+        return redirect()->route('verification.notice')
+            ->with('status', "Votre compte a été créé ! Un email d'activation vient de vous être envoyé à {$user->email}. Cliquez sur le lien qu'il contient pour activer votre compte.");
     }
 }

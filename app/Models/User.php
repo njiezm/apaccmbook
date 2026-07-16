@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use App\Models\Purchase;
+use App\Notifications\ResetPasswordFrench;
+use App\Notifications\VerifyEmailFrench;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -28,6 +30,16 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_author' => 'boolean',
             'social_links' => 'json',
         ];
+    }
+
+    public function sendEmailVerificationNotification(): void
+    {
+        $this->notify(new VerifyEmailFrench);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordFrench($token));
     }
 
     public function purchases(): HasMany
