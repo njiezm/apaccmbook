@@ -1,5 +1,5 @@
 // APACC-M e-Livre — Service Worker
-const CACHE_NAME = 'apacc-m-v1';
+const CACHE_NAME = 'apacc-m-v2';
 
 // Ressources à pré-cacher au premier chargement
 const PRECACHE = [

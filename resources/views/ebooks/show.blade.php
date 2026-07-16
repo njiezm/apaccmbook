@@ -49,6 +49,29 @@
     <meta name="twitter:title" content="{{ $ebook->title }}">
     <meta name="twitter:description" content="{{ $ogDesc }}">
     <meta name="twitter:image" content="{{ $ogImage }}">
+
+    {{-- Données structurées (SEO Google) --}}
+    <script type="application/ld+json">
+    {!! json_encode([
+        '@context' => 'https://schema.org',
+        '@type' => 'Book',
+        'name' => $ebook->title,
+        'description' => $ogDesc,
+        'image' => $ogImage,
+        'url' => route('ebooks.show', $ebook),
+        'inLanguage' => 'fr',
+        'bookFormat' => 'https://schema.org/EBook',
+        'genre' => $ebook->category?->name,
+        'publisher' => ['@type' => 'Organization', 'name' => 'APACC-M'],
+        'offers' => [
+            '@type' => 'Offer',
+            'price' => $ebook->is_free ? '0' : number_format($ebook->price, 2, '.', ''),
+            'priceCurrency' => 'EUR',
+            'availability' => 'https://schema.org/InStock',
+            'url' => route('ebooks.show', $ebook),
+        ],
+    ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
 @endsection
 
 @section('content')

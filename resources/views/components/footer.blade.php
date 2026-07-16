@@ -7,7 +7,7 @@
             <div>
                 <h3 class="font-serif font-bold text-lg text-text-primary mb-4">APACC-M</h3>
                 <p class="text-text-secondary text-sm leading-relaxed">
-                    Plateforme de lecture et diffusion d'e-books de qualité, inspirée par l'esprit éditorial de Narthex.
+                    Plateforme de lecture et de diffusion des publications de l'APACC-M, autour de notre revue <em>Transandans</em>.
                 </p>
             </div>
 

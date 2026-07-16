@@ -12,6 +12,9 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Route;
 
+// SEO
+Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap');
+
 // Public routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/ebooks', [CatalogController::class, 'index'])->name('ebooks.index');
@@ -52,7 +55,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/dashboard', function () {
-        return view('dashboard');
+        // Redirection selon le rôle (l'ancienne vue Breeze/Tailwind n'est pas utilisée ici)
+        return auth()->user()->is_admin
+            ? redirect()->route('admin.dashboard')
+            : redirect()->route('ebooks.mine');
     })->name('dashboard');
 });
 
@@ -73,4 +79,5 @@ Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.'
     Route::patch('/ebooks/{ebook:id}', [AdminEbookController::class, 'update'])->name('ebooks.update');
     Route::delete('/ebooks/{ebook:id}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
     Route::patch('/users/{user:id}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::delete('/users/{user:id}', [AdminEbookController::class, 'destroyUser'])->name('users.destroy');
 });

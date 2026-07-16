@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Ebook;
 use App\Models\User;
 use App\Models\Purchase;
@@ -31,14 +32,15 @@ class AdminController extends Controller
             ->limit(10)
             ->get();
 
-        $ebooks   = Ebook::latest()->get();
+        $ebooks   = Ebook::with('category')->latest()->get();
         $purchases = Purchase::with(['user', 'ebook'])->latest()->get();
         $users    = User::orderBy('name')->get();
+        $categories = Category::orderBy('name')->get();
 
         $paymentSettings = $this->loadPaymentSettings();
 
         return view('admin.dashboard', compact(
-            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'paymentSettings'
+            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'categories', 'paymentSettings'
         ));
     }
 

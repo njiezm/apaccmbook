@@ -467,7 +467,8 @@ body.drawer-open { overflow: hidden; }
 
 @media (max-width: 768px) {
     .nav-links, .nav-actions { display: none; }
-    .hamburger { display: flex; }
+    /* Hamburger du haut masqué : le bouton « Menu » du bottom-nav ouvre le tiroir */
+    .hamburger { display: none !important; }
     .navbar-inner { gap: 0; }
     .navbar-brand { font-size: 1.15rem; }
 }

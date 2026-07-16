@@ -53,9 +53,9 @@
 
                 @if($categories->count())
                 <div class="filter-group">
-                    <label for="category_id">Catégorie</label>
+                    <label for="category_id">Thème</label>
                     <select id="category_id" name="category_id">
-                        <option value="">Toutes les catégories</option>
+                        <option value="">Tous les thèmes</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat->id }}" {{ request('category_id') == $cat->id ? 'selected' : '' }}>
                                 {{ $cat->name }}
@@ -123,7 +123,11 @@
                             @endif
 
                             <div class="ebook-card__footer">
-                                <span class="ebook-card__price">{{ number_format($ebook->price, 2, ',', ' ') }} €</span>
+                                @if($ebook->is_free)
+                                    <span class="ebook-card__price" style="color:var(--cardinal,#b91c1c);">Gratuit</span>
+                                @else
+                                    <span class="ebook-card__price">{{ number_format($ebook->price, 2, ',', ' ') }} €</span>
+                                @endif
                                 <a href="{{ route('ebooks.show', $ebook->slug) }}" class="btn-primary" style="padding:0.42rem 0.9rem;font-size:0.76rem;">Voir le détail</a>
                             </div>
                         </div>

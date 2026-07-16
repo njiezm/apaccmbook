@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /ebook/
+Disallow: /my-ebooks
+Disallow: /profile
+
+Sitemap: https://ebooks.apacc-martinique.fr/sitemap.xml

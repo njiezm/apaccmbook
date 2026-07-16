@@ -20,17 +20,18 @@
         <meta property="og:site_name" content="APACC-M e-Livre">
         <meta property="og:title" content="@yield('title', 'APACC-M e-Livre')">
         <meta property="og:description" content="Bibliothèque numérique de l'APACC-M — patrimoine culturel et religieux martiniquais">
-        <meta property="og:image" content="{{ asset('icons/icon.svg') }}">
+        <meta property="og:image" content="{{ asset('icons/icon-512x512.png') }}">
         <meta property="og:url" content="{{ url()->current() }}">
         <meta name="twitter:card" content="summary_large_image">
     @endif
 
     <link rel="icon" href="{{ asset('icons/icon.svg') }}" type="image/svg+xml">
-    <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
+    <link rel="alternate icon" href="{{ asset('icons/favicon-32.png') }}" type="image/png">
     <link rel="manifest" href="{{ asset('manifest.json') }}">
     <link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -56,6 +57,7 @@
             <li><a class="nav-link{{ request()->routeIs('contact') ? ' active' : '' }}" href="{{ route('contact') }}">Contact</a></li>
             @auth
             <li><a class="nav-link{{ request()->routeIs('ebooks.mine') ? ' active' : '' }}" href="{{ route('ebooks.mine') }}">Mes e-Livres</a></li>
+            <li><a class="nav-link{{ request()->routeIs('profile.edit') ? ' active' : '' }}" href="{{ route('profile.edit') }}">Mon profil</a></li>
             @endauth
             @can('manage-ebooks')
             <li><a class="nav-link nav-link--admin{{ request()->routeIs('admin.*') ? ' active' : '' }}" href="{{ route('admin.dashboard') }}">Admin</a></li>
@@ -64,7 +66,10 @@
 
         <div class="nav-actions">
             @auth
-                <span class="nav-user">{{ Auth::user()->name }}</span>
+                <a href="{{ route('profile.edit') }}" class="nav-user{{ request()->routeIs('profile.edit') ? ' active' : '' }}" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;" title="Mon profil">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    {{ Auth::user()->name }}
+                </a>
                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                     @csrf
                     <button type="submit" class="btn-ghost btn-sm">Déconnexion</button>

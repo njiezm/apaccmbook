@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Coupon extends Model
 {
@@ -11,11 +12,13 @@ class Coupon extends Model
 
     protected $fillable = [
         'code',
+        'ebook_id',
         'discount_percent',
         'discount_amount',
         'valid_from',
         'valid_until',
         'usage_limit',
+        'used_count',
         'is_active',
     ];
 
@@ -53,9 +56,31 @@ class Coupon extends Model
     public function getDiscountAmount(float $price): float
     {
         if ($this->discount_percent) {
-            return $price * ($this->discount_percent / 100);
+            return round($price * ($this->discount_percent / 100), 2);
         }
 
-        return (float) $this->discount_amount ?? 0;
+        return (float) ($this->discount_amount ?? 0);
+    }
+
+    /** Prix final après application du coupon (jamais négatif). */
+    public function finalPrice(float $price): float
+    {
+        return max(0, round($price - $this->getDiscountAmount($price), 2));
+    }
+
+    /** Le coupon est-il applicable à cet ebook ? (global ou ciblé) */
+    public function isValidForEbook(Ebook $ebook): bool
+    {
+        if (!$this->isValid()) {
+            return false;
+        }
+
+        // ebook_id null = coupon global ; sinon doit correspondre
+        return $this->ebook_id === null || (int) $this->ebook_id === (int) $ebook->id;
+    }
+
+    public function ebook(): BelongsTo
+    {
+        return $this->belongsTo(Ebook::class);
     }
 }

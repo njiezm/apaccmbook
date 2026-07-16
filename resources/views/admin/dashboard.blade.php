@@ -18,9 +18,12 @@ main > .container-custom:first-child { padding-top: 0 !important; }
     showAdd: false,
     editEbook: null,
     editAction: '',
+    deleteUser: null,
+    deleteUserAction: '',
     adminMenu: false,
     openEdit(p) { this.editEbook = p; this.editAction = p.update_url; },
-    closeModals() { this.showAdd = false; this.editEbook = null; this.editAction = ''; }
+    openDeleteUser(u) { this.deleteUser = u; this.deleteUserAction = u.destroy_url; },
+    closeModals() { this.showAdd = false; this.editEbook = null; this.editAction = ''; this.deleteUser = null; this.deleteUserAction = ''; }
 }">
 
     {{-- ═══ SIDEBAR ═══ --}}
@@ -78,30 +81,30 @@ main > .container-custom:first-child { padding-top: 0 !important; }
         {{-- Stats --}}
         <div class="admin-stats-grid">
             <div class="admin-stat">
-                <div class="admin-stat-icon red">📚</div>
+                <div class="admin-stat-icon red"><i class="fa-solid fa-book"></i></div>
                 <div class="admin-stat-body">
                     <span class="stat-label">Publications</span>
                     <span class="stat-value">{{ $stats['total_ebooks'] ?? 0 }}</span>
                 </div>
             </div>
             <div class="admin-stat">
-                <div class="admin-stat-icon blue">👥</div>
+                <div class="admin-stat-icon blue"><i class="fa-solid fa-users"></i></div>
                 <div class="admin-stat-body">
                     <span class="stat-label">Membres</span>
                     <span class="stat-value">{{ $stats['total_users'] ?? 0 }}</span>
                 </div>
             </div>
             <div class="admin-stat">
-                <div class="admin-stat-icon green">✅</div>
+                <div class="admin-stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
                 <div class="admin-stat-body">
                     <span class="stat-label">Ventes</span>
                     <span class="stat-value">{{ $stats['total_sales'] ?? 0 }}</span>
                 </div>
             </div>
             <div class="admin-stat">
-                <div class="admin-stat-icon amber">💶</div>
+                <div class="admin-stat-icon amber"><i class="fa-solid fa-coins"></i></div>
                 <div class="admin-stat-body">
-                    <span class="stat-label">Revenus</span>
+                    <span class="stat-label">Revenues (théorique)</span>
                     <span class="stat-value" style="font-size:1.55rem;">{{ number_format($stats['total_revenue'] ?? 0, 0, ',', ' ') }} €</span>
                 </div>
             </div>
@@ -125,6 +128,7 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             'title'         => $ebook->title,
                             'price'         => number_format($ebook->price, 2, '.', ''),
                             'is_free'       => (bool) $ebook->is_free,
+                            'category_id'   => $ebook->category_id,
                             'helloasso_url' => $ebook->helloasso_url,
                             'description'   => $ebook->description,
                             'update_url'    => route('admin.ebooks.update', $ebook),
@@ -142,7 +146,11 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             <p class="admin-ebook-title">{{ $ebook->title }}</p>
                             <p class="admin-ebook-desc">{{ Str::limit($ebook->description, 75) }}</p>
                             <div class="admin-ebook-footer">
-                                <span class="admin-ebook-price">{{ number_format($ebook->price, 2, ',', ' ') }} €</span>
+                                @if($ebook->is_free)
+                                    <span class="admin-ebook-price" style="color:var(--cardinal);">Gratuit</span>
+                                @else
+                                    <span class="admin-ebook-price">{{ number_format($ebook->price, 2, ',', ' ') }} €</span>
+                                @endif
                                 <div style="display:flex;gap:0.4rem;">
                                     <button type="button" class="btn-ghost btn-xs" @click="openEdit({{ $p }})">Modifier</button>
                                     <form method="POST" action="{{ route('admin.ebooks.destroy', $ebook) }}" onsubmit="return confirm('Supprimer ?')">
@@ -243,10 +251,19 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                                 <td style="font-size:0.85rem;color:var(--text-secondary);">{{ $user->email }}</td>
                                 <td><span class="badge {{ $user->is_admin ? 'admin' : 'user' }}">{{ $user->is_admin ? 'Admin' : 'Membre' }}</span></td>
                                 <td>
-                                    <form method="POST" action="{{ route('admin.users.toggle-admin', $user) }}">
-                                        @csrf @method('PATCH')
-                                        <button type="submit" class="btn-ghost btn-xs">{{ $user->is_admin ? '↓ Retirer Admin' : '↑ Nommer Admin' }}</button>
-                                    </form>
+                                    <div style="display:flex;align-items:center;gap:0.4rem;">
+                                        <form method="POST" action="{{ route('admin.users.toggle-admin', $user) }}">
+                                            @csrf @method('PATCH')
+                                            <button type="submit" class="btn-ghost btn-xs">{{ $user->is_admin ? '↓ Retirer Admin' : '↑ Nommer Admin' }}</button>
+                                        </form>
+                                        @if($user->id !== auth()->id())
+                                            <button type="button" class="btn-ghost btn-xs" style="color:var(--cardinal);border-color:var(--cardinal);padding:0.3rem 0.45rem;"
+                                                    title="Supprimer le compte"
+                                                    @click="openDeleteUser({{ json_encode(['name' => $user->name, 'email' => $user->email, 'destroy_url' => route('admin.users.destroy', $user)], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG) }})">
+                                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                             @endforeach
@@ -373,6 +390,15 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 @csrf
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" required placeholder="Titre de la publication"></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required placeholder="Description…"></textarea></div>
+                <div class="admin-field">
+                    <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
+                    <select name="category_id">
+                        <option value="">— Choisir un thème —</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
                     <input id="add_is_free" name="is_free" type="checkbox" value="1" x-model="free" style="width:auto;margin:0;">
                     <label for="add_is_free" style="margin:0;cursor:pointer;">Livre gratuit (aucun paiement requis)</label>
@@ -397,10 +423,19 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <h3 x-text="editEbook ? 'Modifier — ' + editEbook.title : 'Modifier'">Modifier</h3>
                 <button type="button" class="btn-close" @click="closeModals()">×</button>
             </div>
-            <form :action="editAction" method="POST" enctype="multipart/form-data" x-data="{ free: false }" x-effect="free = !!(editEbook && editEbook.is_free)">
+            <form :action="editAction" method="POST" enctype="multipart/form-data" x-data="{ free: false, editCategory: '' }" x-effect="free = !!(editEbook && editEbook.is_free); editCategory = editEbook && editEbook.category_id ? String(editEbook.category_id) : ''">
                 @csrf @method('PATCH')
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" :value="editEbook ? editEbook.title : ''" required></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required x-effect="$el.value = editEbook ? editEbook.description : ''"></textarea></div>
+                <div class="admin-field">
+                    <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
+                    <select name="category_id" x-model="editCategory">
+                        <option value="">— Choisir un thème —</option>
+                        @foreach($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
                 <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
                     <input id="edit_is_free" name="is_free" type="checkbox" value="1" x-model="free" style="width:auto;margin:0;">
                     <label for="edit_is_free" style="margin:0;cursor:pointer;">Livre gratuit (aucun paiement requis)</label>
@@ -415,6 +450,29 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 </div>
                 <button type="submit" class="btn-primary" style="width:100%;margin-top:0.5rem;">Enregistrer</button>
             </form>
+        </div>
+    </div>
+
+    {{-- MODAL SUPPRESSION DE COMPTE --}}
+    <div x-show="deleteUser" class="modal" x-cloak @click.self="closeModals()">
+        <div class="modal-panel" style="max-width:440px;">
+            <div class="modal-header">
+                <h3>Supprimer ce compte ?</h3>
+                <button type="button" class="btn-close" @click="closeModals()">×</button>
+            </div>
+            <p class="text-muted" style="font-size:0.9rem;line-height:1.6;">
+                Vous êtes sur le point de supprimer définitivement le compte de
+                <strong x-text="deleteUser ? deleteUser.name : ''"></strong>
+                (<span x-text="deleteUser ? deleteUser.email : ''"></span>).
+                Cette action est <strong>irréversible</strong>.
+            </p>
+            <div style="display:flex;gap:0.6rem;justify-content:flex-end;margin-top:1rem;">
+                <button type="button" class="btn-ghost" @click="closeModals()">Annuler</button>
+                <form :action="deleteUserAction" method="POST" style="margin:0;">
+                    @csrf @method('DELETE')
+                    <button type="submit" class="btn-primary" style="background:var(--cardinal);border-color:var(--cardinal);">Supprimer définitivement</button>
+                </form>
+            </div>
         </div>
     </div>
 

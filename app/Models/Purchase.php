@@ -19,6 +19,8 @@ class Purchase extends Model
         'payment_status',
         'payment_method',
         'transaction_id',
+        'coupon_code',
+        'final_price',
     ];
 
     protected $attributes = [

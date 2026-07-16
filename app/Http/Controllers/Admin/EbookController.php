@@ -21,11 +21,8 @@ class EbookController extends Controller
 
     public function index()
     {
-        $ebooks = Ebook::latest()->get();
-        $users = User::orderBy('name')->get();
-        $purchases = Purchase::with(['ebook', 'user'])->orderByDesc('created_at')->get();
-
-        return view('admin.ebooks.index', compact('ebooks', 'users', 'purchases'));
+        // Le catalogue admin est géré depuis le tableau de bord unique (admin.dashboard).
+        return redirect()->route('admin.dashboard');
     }
 
     public function store(Request $request)
@@ -33,6 +30,7 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
+            'category_id'   => ['nullable', 'exists:categories,id'],
             'is_free'       => ['sometimes', 'boolean'],
             'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
@@ -53,6 +51,7 @@ class EbookController extends Controller
         $ebook = Ebook::create([
             'title'         => $data['title'],
             'description'   => $data['description'],
+            'category_id'   => $data['category_id'] ?? null,
             'is_free'       => $isFree,
             'price'         => $isFree ? 0 : ($data['price'] ?? 0),
             'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? null),
@@ -61,13 +60,25 @@ class EbookController extends Controller
             'status'        => 'published',
         ]);
 
-        // Notifier les abonnés actifs
-        $subscribers = Subscriber::where('is_active', true)->pluck('email');
-        foreach ($subscribers as $email) {
-            Mail::to($email)->queue(new NewEbookMail($ebook));
-        }
+        // Notifier les abonnés actifs — APRÈS la réponse HTTP et par lots,
+        // pour ne pas bloquer/timeout la requête de publication (envoi synchrone).
+        $subscriberCount = Subscriber::where('is_active', true)->count();
+        $ebookId = $ebook->id;
+        dispatch(function () use ($ebookId) {
+            $ebook = Ebook::find($ebookId);
+            if (!$ebook) {
+                return;
+            }
+            Subscriber::where('is_active', true)
+                ->select('email')
+                ->chunk(100, function ($chunk) use ($ebook) {
+                    foreach ($chunk as $subscriber) {
+                        Mail::to($subscriber->email)->send(new NewEbookMail($ebook));
+                    }
+                });
+        })->afterResponse();
 
-        return back()->with('status', "e-Livre « {$ebook->title} » publié. {$subscribers->count()} abonné(s) notifié(s).");
+        return back()->with('status', "e-Livre « {$ebook->title} » publié. {$subscriberCount} abonné(s) seront notifiés par email.");
     }
 
     public function update(Request $request, Ebook $ebook)
@@ -75,6 +86,7 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
+            'category_id'   => ['nullable', 'exists:categories,id'],
             'is_free'       => ['sometimes', 'boolean'],
             'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
@@ -101,6 +113,7 @@ class EbookController extends Controller
         $ebook->update([
             'title'         => $data['title'],
             'description'   => $data['description'],
+            'category_id'   => $data['category_id'] ?? null,
             'is_free'       => $isFree,
             'price'         => $isFree ? 0 : ($data['price'] ?? 0),
             'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? $ebook->helloasso_url),
@@ -171,5 +184,22 @@ class EbookController extends Controller
         $user->update(['is_admin' => !$user->is_admin]);
 
         return back()->with('status', "Le rôle administrateur de {$user->name} a été mis à jour.");
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
+
+        // Supprime les données liées pour éviter les contraintes de clé étrangère
+        $user->purchases()->delete();
+        $user->reviews()->delete();
+        $user->wishlists()->delete();
+
+        $name = $user->name;
+        $user->delete();
+
+        return back()->with('status', "Le compte de {$name} a été supprimé.");
     }
 }

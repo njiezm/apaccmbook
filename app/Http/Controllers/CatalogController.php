@@ -26,10 +26,13 @@ class CatalogController extends Controller
             $query->where('price', '<=', $request->max_price);
         }
 
-        // Search
+        // Search (groupé pour ne pas casser les filtres catégorie/prix)
         if ($request->search) {
-            $query->where('title', 'like', "%{$request->search}%")
-                ->orWhere('description', 'like', "%{$request->search}%");
+            $term = $request->search;
+            $query->where(function ($q) use ($term) {
+                $q->where('title', 'like', "%{$term}%")
+                  ->orWhere('description', 'like', "%{$term}%");
+            });
         }
 
         // Sort
