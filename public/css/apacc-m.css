@@ -40,7 +40,9 @@ body {
     margin: 0;
     line-height: 1.65;
     min-height: 100vh;
-    overflow-x: hidden;
+    /* clip (et non hidden) : bloque le débordement horizontal sans faire du body
+       un conteneur de défilement — sinon le header/menu fixes "bougent" sur mobile */
+    overflow-x: clip;
 }
 
 h1, h2, h3, h4, h5, h6 {
