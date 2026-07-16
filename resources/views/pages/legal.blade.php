@@ -18,7 +18,7 @@
         <h2 style="font-size:1.25rem;margin-bottom:1rem;">Éditeur du site</h2>
         <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:1.75rem;">
             <strong style="color:var(--text-primary);">APACC-M</strong><br>
-            Association de Promotion et d'Animation de la Culture Catholique en Martinique<br>
+            Association pour la Promotion de l'Art et la Culture Chrétienne<br>
             Martinique, France<br>
             Email : <a href="{{ route('contact') }}" style="color:var(--cardinal);">via notre formulaire de contact</a>
         </p>

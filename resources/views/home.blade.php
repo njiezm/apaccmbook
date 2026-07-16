@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'APACC-M — Bibliothèque numérique catholique martiniquaise')
+@section('title', 'APACC-M — Bibliothèque numérique chrétienne martiniquaise')
 
 @section('content')
 
@@ -25,7 +25,7 @@
             <div class="col-md-6">
                 <span class="section-label">Notre mission</span>
                 <h2 style="font-size:1.9rem;margin-bottom:1.25rem;">Diffuser la connaissance,<br>valoriser le patrimoine</h2>
-                <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:1.25rem;">L'APACC-M est une association martiniquaise engagée dans la promotion de la culture catholique et du patrimoine religieux des Antilles. Nos publications numériques allient rigueur théologique, qualité éditoriale et accessibilité moderne.</p>
+                <p style="color:var(--text-secondary);line-height:1.8;margin-bottom:1.25rem;">L'APACC-M est une association martiniquaise engagée dans la promotion de la culture chrétienne et du patrimoine religieux des Antilles. Nos publications numériques allient rigueur théologique, qualité éditoriale et accessibilité moderne.</p>
                 <p style="color:var(--text-secondary);line-height:1.8;">Chaque eBook est le fruit d'un travail de recherche approfondi, présenté dans un format sécurisé et lisible sur tous les supports.</p>
                 <a href="{{ route('about') }}" class="btn-secondary mt-3" style="display:inline-block;">Découvrir l'association</a>
             </div>

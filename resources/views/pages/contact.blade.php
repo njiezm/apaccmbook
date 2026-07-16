@@ -62,8 +62,8 @@
                 <h3 style="font-size:1rem;text-transform:uppercase;letter-spacing:0.2em;color:var(--cardinal);margin-bottom:1.25rem;">Informations</h3>
                 <p style="font-size:0.92rem;color:var(--text-secondary);line-height:1.7;margin-bottom:0.75rem;">
                     <strong style="color:var(--text-primary);">APACC-M</strong><br>
-                    Association de Promotion et d'Animation<br>
-                    de la Culture Catholique en Martinique
+                    Association pour la Promotion de l'Art<br>
+                    et la Culture Chrétienne
                 </p>
                 <p style="font-size:0.92rem;color:var(--text-secondary);line-height:1.7;margin:0;">
                     Nous répondons à toutes les demandes sous <strong>24 heures ouvrées</strong>, du lundi au vendredi.
