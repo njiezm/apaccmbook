@@ -107,7 +107,7 @@
                     <article class="ebook-card reveal">
                         <div style="position:relative;">
                             @if($ebook->cover_image)
-                                <img class="ebook-card__cover" src="{{ asset('storage/' . $ebook->cover_image) }}" alt="{{ $ebook->title }}" loading="lazy">
+                                <img class="ebook-card__cover" src="{{ $ebook->thumbUrl() }}" alt="Couverture — {{ $ebook->title }}" loading="lazy" decoding="async">
                             @else
                                 <div class="ebook-card__cover-placeholder">📖</div>
                             @endif

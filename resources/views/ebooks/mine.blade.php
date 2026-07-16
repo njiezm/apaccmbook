@@ -19,7 +19,7 @@
             <article class="purchase-card reveal">
                 <a href="{{ route('ebooks.show', $purchase->ebook) }}" style="display:block;margin:-0.25rem -0.25rem 0.9rem;border-radius:var(--radius,10px);overflow:hidden;aspect-ratio:3/4;background:var(--cream,#f8f7f4);">
                     @if($purchase->ebook->cover_image)
-                        <img src="{{ asset('storage/' . $purchase->ebook->cover_image) }}" alt="{{ $purchase->ebook->title }}" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;">
+                        <img src="{{ $purchase->ebook->thumbUrl() }}" alt="Couverture — {{ $purchase->ebook->title }}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;">
                     @else
                         <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:3rem;">📖</div>
                     @endif

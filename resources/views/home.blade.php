@@ -63,7 +63,7 @@
                     <a href="{{ route('ebooks.show', $ebook->slug) }}" class="text-decoration-none d-block h-100">
                         <article class="arch-card reveal h-100">
                             @if($ebook->cover_image)
-                                <img src="{{ asset('storage/' . $ebook->cover_image) }}" alt="{{ $ebook->title }}" loading="lazy">
+                                <img src="{{ $ebook->thumbUrl() }}" alt="Couverture — {{ $ebook->title }}" loading="lazy" decoding="async">
                             @else
                                 <div class="arch-card__cover-placeholder">📖</div>
                             @endif

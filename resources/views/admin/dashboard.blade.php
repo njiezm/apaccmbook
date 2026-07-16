@@ -137,13 +137,14 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             'category_id'   => $ebook->category_id,
                             'helloasso_url' => $ebook->helloasso_url,
                             'description'   => $ebook->description,
+                            'sommaire'      => $ebook->sommaire,
                             'update_url'    => route('admin.ebooks.update', $ebook),
                         ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG);
                     @endphp
                     <article class="admin-ebook-card">
                         <div class="admin-ebook-cover">
                             @if($ebook->cover_image)
-                                <img src="{{ asset('storage/' . $ebook->cover_image) }}" alt="{{ $ebook->title }}">
+                                <img src="{{ $ebook->thumbUrl() }}" alt="Couverture — {{ $ebook->title }}" loading="lazy" decoding="async">
                             @else
                                 <div class="admin-ebook-cover-placeholder">📖</div>
                             @endif
@@ -471,6 +472,10 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" required placeholder="Titre de la publication"></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required placeholder="Description…"></textarea></div>
                 <div class="admin-field">
+                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(optionnel — une entrée par ligne ; ajoutez le n° de page à la fin pour le saut de page, ex. « Introduction 5 »)</small></label>
+                    <textarea name="sommaire" rows="4" placeholder="Introduction 3&#10;Chapitre 1 — Origines 8&#10;Chapitre 2 — Traditions 21"></textarea>
+                </div>
+                <div class="admin-field">
                     <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
                     <select name="category_id">
                         <option value="">— Choisir un thème —</option>
@@ -507,6 +512,10 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 @csrf @method('PATCH')
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" :value="editEbook ? editEbook.title : ''" required></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required x-effect="$el.value = editEbook ? editEbook.description : ''"></textarea></div>
+                <div class="admin-field">
+                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(une entrée par ligne ; n° de page en fin de ligne pour le saut)</small></label>
+                    <textarea name="sommaire" rows="4" placeholder="Introduction 3&#10;Chapitre 1 8" x-effect="$el.value = editEbook ? (editEbook.sommaire || '') : ''"></textarea>
+                </div>
                 <div class="admin-field">
                     <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
                     <select name="category_id" x-model="editCategory">

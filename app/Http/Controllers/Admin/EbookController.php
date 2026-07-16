@@ -30,6 +30,7 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
+            'sommaire'      => ['nullable', 'string', 'max:5000'],
             'category_id'   => ['nullable', 'exists:categories,id'],
             'is_free'       => ['sometimes', 'boolean'],
             'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
@@ -46,11 +47,13 @@ class EbookController extends Controller
         $coverImage = null;
         if ($request->hasFile('cover')) {
             $coverImage = $request->file('cover')->store('covers', 'public');
+            \App\Support\CoverThumbnail::generate($coverImage);
         }
 
         $ebook = Ebook::create([
             'title'         => $data['title'],
             'description'   => $data['description'],
+            'sommaire'      => $data['sommaire'] ?? null,
             'category_id'   => $data['category_id'] ?? null,
             'is_free'       => $isFree,
             'price'         => $isFree ? 0 : ($data['price'] ?? 0),
@@ -86,6 +89,7 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
+            'sommaire'      => ['nullable', 'string', 'max:5000'],
             'category_id'   => ['nullable', 'exists:categories,id'],
             'is_free'       => ['sometimes', 'boolean'],
             'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
@@ -106,13 +110,16 @@ class EbookController extends Controller
         if ($request->hasFile('cover')) {
             if ($ebook->cover_image) {
                 Storage::disk('public')->delete($ebook->cover_image);
+                \App\Support\CoverThumbnail::delete($ebook->cover_image);
             }
             $coverImage = $request->file('cover')->store('covers', 'public');
+            \App\Support\CoverThumbnail::generate($coverImage);
         }
 
         $ebook->update([
             'title'         => $data['title'],
             'description'   => $data['description'],
+            'sommaire'      => $data['sommaire'] ?? null,
             'category_id'   => $data['category_id'] ?? null,
             'is_free'       => $isFree,
             'price'         => $isFree ? 0 : ($data['price'] ?? 0),
@@ -129,6 +136,7 @@ class EbookController extends Controller
         Storage::disk('private')->delete($ebook->file_path);
         if ($ebook->cover_image) {
             Storage::disk('public')->delete($ebook->cover_image);
+            \App\Support\CoverThumbnail::delete($ebook->cover_image);
         }
         $ebook->delete();
 

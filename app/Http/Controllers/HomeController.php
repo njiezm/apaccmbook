@@ -9,7 +9,8 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $topEbooks = Ebook::where('status', 'published')
+        $topEbooks = Ebook::with('category')
+            ->where('status', 'published')
             ->latest()
             ->limit(8)
             ->get();

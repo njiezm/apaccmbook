@@ -191,6 +191,38 @@
                 </div>
             @endif
 
+            {{-- Sommaire (aperçu) --}}
+            @php
+                $sommaireLines = collect(preg_split('/\r\n|\r|\n/', (string) $ebook->sommaire))
+                    ->map(fn ($l) => trim($l))->filter()->values();
+            @endphp
+            @if($sommaireLines->isNotEmpty())
+                <div x-data="{ open: false }" style="margin:1rem 0;">
+                    <button type="button" @click="open = true" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.5rem;">
+                        <i class="fa-solid fa-list-ul"></i> Voir le sommaire
+                    </button>
+
+                    <div x-cloak x-show="open" @click.self="open = false"
+                         style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;">
+                        <div style="background:var(--white);border-radius:var(--radius-lg);max-width:520px;width:100%;max-height:80vh;overflow:auto;border-top:4px solid var(--cardinal);">
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border-light);">
+                                <h3 style="margin:0;font-size:1.15rem;">Sommaire</h3>
+                                <button type="button" @click="open = false" style="background:none;border:none;font-size:1.5rem;line-height:1;cursor:pointer;color:var(--text-muted);">×</button>
+                            </div>
+                            <ul style="list-style:none;margin:0;padding:0.5rem 0;">
+                                @foreach($sommaireLines as $line)
+                                    @php preg_match('/^(.*?)[\s.\-–—]*(\d+)\s*$/u', $line, $m); @endphp
+                                    <li style="display:flex;justify-content:space-between;gap:1rem;padding:0.55rem 1.5rem;border-bottom:1px solid var(--border-light);font-size:0.92rem;">
+                                        <span>{{ $m[1] ?? $line }}</span>
+                                        @if(!empty($m[2]))<span style="color:var(--text-muted);flex-shrink:0;">p. {{ $m[2] }}</span>@endif
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             {{-- Bloc achat --}}
             @php
                 // Coupon éventuellement appliqué (session)
@@ -329,7 +361,7 @@
                             @if(in_array('virement', $methods) && ($paymentSettings['virement_iban'] ?? ''))
                                 <div style="background:var(--cream,#f8f7f4);border:1px solid var(--border-light);border-radius:var(--radius);padding:0.7rem 0.85rem;">
                                     <p style="font-size:0.82rem;font-weight:700;margin:0 0 0.4rem;color:var(--text-primary);">Virement bancaire</p>
-                                    <p style="font-size:0.79rem;color:var(--text-secondary);margin:0 0 0.2rem;">IBAN : <code style="background:#fff;padding:0.1rem 0.35rem;border-radius:3px;border:1px solid var(--border-light);font-size:0.78rem;">{{ $paymentSettings['virement_iban'] }}</code></p>
+                                    <p style="font-size:0.79rem;color:var(--text-secondary);margin:0 0 0.2rem;">IBAN : <code style="background:var(--white);padding:0.1rem 0.35rem;border-radius:3px;border:1px solid var(--border-light);font-size:0.78rem;color:var(--text-primary);">{{ $paymentSettings['virement_iban'] }}</code></p>
                                     @if($paymentSettings['virement_bic'] ?? '')<p style="font-size:0.79rem;color:var(--text-secondary);margin:0 0 0.2rem;">BIC : <strong>{{ $paymentSettings['virement_bic'] }}</strong></p>@endif
                                     @if($paymentSettings['virement_titulaire'] ?? '')<p style="font-size:0.79rem;color:var(--text-secondary);margin:0 0 0.5rem;">Titulaire : <strong>{{ $paymentSettings['virement_titulaire'] }}</strong></p>@endif
                                     <form method="POST" action="{{ route('purchases.store') }}">
@@ -464,7 +496,7 @@
                         <a href="{{ route('ebooks.show', $rec->slug) }}" class="text-decoration-none d-block h-100">
                             <article class="arch-card h-100">
                                 @if($rec->cover_image)
-                                    <img src="{{ asset('storage/' . $rec->cover_image) }}" alt="{{ $rec->title }}" loading="lazy" style="height:180px;object-fit:cover;">
+                                    <img src="{{ $rec->thumbUrl() }}" alt="Couverture — {{ $rec->title }}" loading="lazy" decoding="async" style="height:180px;object-fit:cover;">
                                 @else
                                     <div class="arch-card__cover-placeholder" style="height:180px;font-size:2.5rem;">📖</div>
                                 @endif

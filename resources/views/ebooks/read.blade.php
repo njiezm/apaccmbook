@@ -108,6 +108,14 @@
 @endsection
 
 @section('content')
+@php
+    $sommaireItems = collect(preg_split('/\r\n|\r|\n/', (string) $ebook->sommaire))
+        ->map(fn ($l) => trim($l))->filter()
+        ->map(function ($line) {
+            preg_match('/^(.*?)[\s.\-–—]*(\d+)\s*$/u', $line, $m);
+            return ['title' => $m[1] ?? $line, 'page' => $m[2] ?? null];
+        })->values();
+@endphp
 <section class="reader-shell">
 
     {{-- ── Barre titre + contrôles desktop (cachée sur mobile) ── --}}
@@ -130,6 +138,9 @@
                 <button type="button" id="zoom-out" class="btn-secondary">A−</button>
                 <span id="zoom-level" style="min-width:46px;text-align:center;font-size:0.78rem;">100%</span>
                 <button type="button" id="zoom-in" class="btn-secondary">A+</button>
+                @if($sommaireItems->isNotEmpty())
+                    <button type="button" id="sommaire-btn" class="btn-secondary" title="Sommaire"><i class="fa-solid fa-list-ul"></i></button>
+                @endif
                 <button type="button" id="fullscreen-btn" class="btn-primary">Plein écran</button>
             </div>
         </div>
@@ -161,14 +172,44 @@
 
     {{-- ── Barre flottante mobile (et fullscreen mobile) ── --}}
     <div class="reader-float" id="reader-float">
-        <button type="button" id="float-prev"       class="btn-secondary" style="padding:0.3rem 0.6rem;">‹</button>
+        <button type="button" id="float-prev"       class="btn-secondary" style="padding:0.3rem 0.6rem;" aria-label="Page précédente">‹</button>
         <span id="float-page-indicator"             style="color:#fff;font-size:0.72rem;min-width:48px;text-align:center;">— / —</span>
-        <button type="button" id="float-next"       class="btn-secondary" style="padding:0.3rem 0.6rem;">›</button>
-        <button type="button" id="float-zoom-out"   class="btn-secondary" style="padding:0.3rem 0.6rem;">A−</button>
+        <button type="button" id="float-next"       class="btn-secondary" style="padding:0.3rem 0.6rem;" aria-label="Page suivante">›</button>
+        <button type="button" id="float-zoom-out"   class="btn-secondary" style="padding:0.3rem 0.6rem;" aria-label="Dézoomer">A−</button>
         <span id="float-zoom-level"                 style="color:#fff;font-size:0.72rem;min-width:40px;text-align:center;">100%</span>
-        <button type="button" id="float-zoom-in"    class="btn-secondary" style="padding:0.3rem 0.6rem;">A+</button>
-        <button type="button" id="float-fullscreen" class="btn-primary"   style="padding:0.3rem 0.75rem;font-size:0.78rem;">⛶</button>
+        <button type="button" id="float-zoom-in"    class="btn-secondary" style="padding:0.3rem 0.6rem;" aria-label="Zoomer">A+</button>
+        @if($sommaireItems->isNotEmpty())
+            <button type="button" id="float-sommaire" class="btn-secondary" style="padding:0.3rem 0.6rem;" title="Sommaire"><i class="fa-solid fa-list-ul"></i></button>
+        @endif
+        <button type="button" id="float-fullscreen" class="btn-primary"   style="padding:0.3rem 0.75rem;font-size:0.78rem;" aria-label="Plein écran">⛶</button>
     </div>
+
+    {{-- ── Modal Sommaire ── --}}
+    @if($sommaireItems->isNotEmpty())
+    <div id="sommaire-modal" style="display:none;position:fixed;inset:0;z-index:10001;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;padding:1rem;">
+        <div style="background:#fff;color:#1a1a1a;border-radius:12px;max-width:520px;width:100%;max-height:80vh;overflow:auto;border-top:4px solid #b91c1c;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;">
+                <h3 style="margin:0;font-size:1.1rem;">Sommaire</h3>
+                <button type="button" id="sommaire-close" style="background:none;border:none;font-size:1.6rem;line-height:1;cursor:pointer;color:#888;">×</button>
+            </div>
+            <ul style="list-style:none;margin:0;padding:0.5rem 0;">
+                @foreach($sommaireItems as $item)
+                    <li>
+                        @if($item['page'])
+                            <button type="button" class="sommaire-jump" data-page="{{ $item['page'] }}"
+                                    style="width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #eee;padding:0.6rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;gap:1rem;font-size:0.92rem;color:#1a1a1a;">
+                                <span>{{ $item['title'] }}</span>
+                                <span style="color:#b91c1c;flex-shrink:0;font-weight:600;">p. {{ $item['page'] }}</span>
+                            </button>
+                        @else
+                            <div style="padding:0.6rem 1.5rem;border-bottom:1px solid #eee;font-size:0.92rem;">{{ $item['title'] }}</div>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+    @endif
 
 </section>
 
@@ -481,6 +522,22 @@
         if ((e.ctrlKey || e.metaKey) && (k === 'p' || k === 's')) e.preventDefault();
         if (e.ctrlKey && e.shiftKey && ['i', 'j', 'c', 's'].includes(k)) e.preventDefault();
         if (k === 'f12') e.preventDefault();
+    });
+
+    // ── Sommaire (modal + saut de page) ──
+    const sommaireModal = document.getElementById('sommaire-modal');
+    const openSommaire  = () => { if (sommaireModal) sommaireModal.style.display = 'flex'; };
+    const closeSommaire = () => { if (sommaireModal) sommaireModal.style.display = 'none'; };
+    document.getElementById('sommaire-btn')?.addEventListener('click', openSommaire);
+    document.getElementById('float-sommaire')?.addEventListener('click', openSommaire);
+    document.getElementById('sommaire-close')?.addEventListener('click', closeSommaire);
+    sommaireModal?.addEventListener('click', (e) => { if (e.target === sommaireModal) closeSommaire(); });
+    document.querySelectorAll('.sommaire-jump').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const p = parseInt(btn.dataset.page, 10);
+            if (p) showPage(p);
+            closeSommaire();
+        });
     });
 
     // ── Chargement PDF ────────────────────────────────────────

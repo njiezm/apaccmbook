@@ -11,7 +11,7 @@ class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ebook::where('status', 'published');
+        $query = Ebook::with('category')->where('status', 'published');
 
         // Filter by category
         if ($request->category_id) {
@@ -158,7 +158,7 @@ class CatalogController extends Controller
     {
         $purchases = auth()->user()
             ->purchases()
-            ->with('ebook')
+            ->with('ebook.category')
             ->orderByDesc('created_at')
             ->get();
 

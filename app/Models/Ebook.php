@@ -16,6 +16,7 @@ class Ebook extends Model
         'title',
         'slug',
         'description',
+        'sommaire',
         'short_description',
         'price',
         'is_free',
@@ -74,6 +75,19 @@ class Ebook extends Model
     public function wishlists(): HasMany
     {
         return $this->hasMany(Wishlist::class);
+    }
+
+    /** URL de la miniature (WebP) si disponible, sinon la couverture complète, sinon null. */
+    public function thumbUrl(): ?string
+    {
+        if (!$this->cover_image) {
+            return null;
+        }
+        $thumb = \App\Support\CoverThumbnail::pathFor($this->cover_image);
+        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($thumb)) {
+            return asset('storage/' . $thumb);
+        }
+        return asset('storage/' . $this->cover_image);
     }
 
     public function getAvgRatingAttribute()
