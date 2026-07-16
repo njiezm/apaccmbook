@@ -279,6 +279,80 @@ main > .container-custom:first-child { padding-top: 0 !important; }
             </div>
         </div>
 
+        {{-- ══ COUPONS ══ --}}
+        <div x-show="tab === 'coupons'" x-cloak>
+            <div class="admin-section-header">
+                <div><h2>Coupons de réduction</h2><p>Créez des codes promo ciblés (par livre) ou globaux.</p></div>
+            </div>
+
+            <div class="admin-box" style="margin-bottom:1.5rem;">
+                <div class="admin-box-header"><h3>Nouveau coupon</h3></div>
+                <form method="POST" action="{{ route('admin.coupons.store') }}" style="padding:0.5rem 0;">
+                    @csrf
+                    <div class="admin-form-row">
+                        <div class="admin-field"><label>Code *</label><input name="code" type="text" required placeholder="Ex. NOEL2026" style="text-transform:uppercase;"></div>
+                        <div class="admin-field">
+                            <label>Type *</label>
+                            <select name="discount_type" required>
+                                <option value="percent">Pourcentage (%)</option>
+                                <option value="amount">Montant fixe (€)</option>
+                            </select>
+                        </div>
+                        <div class="admin-field"><label>Valeur *</label><input name="discount_value" type="number" step="0.01" min="0" required placeholder="20"></div>
+                    </div>
+                    <div class="admin-form-row">
+                        <div class="admin-field">
+                            <label>Ciblage</label>
+                            <select name="ebook_id">
+                                <option value="">Tous les ouvrages (global)</option>
+                                @foreach($ebooks as $eb)
+                                    <option value="{{ $eb->id }}">{{ $eb->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="admin-field"><label>Limite d'usage</label><input name="usage_limit" type="number" min="1" placeholder="illimité si vide"></div>
+                    </div>
+                    <div class="admin-form-row">
+                        <div class="admin-field"><label>Valide du</label><input name="valid_from" type="date"></div>
+                        <div class="admin-field"><label>Valide jusqu'au</label><input name="valid_until" type="date"></div>
+                    </div>
+                    <button type="submit" class="btn-primary" style="margin-top:0.5rem;">Créer le coupon</button>
+                </form>
+            </div>
+
+            <div class="admin-box">
+                <div class="admin-box-header"><h3>Coupons existants</h3><span style="font-size:0.82rem;color:var(--text-muted);">{{ $coupons->count() }}</span></div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Code</th><th>Réduction</th><th>Cible</th><th>Validité</th><th>Usage</th><th>Statut</th><th>Actions</th></tr></thead>
+                        <tbody>
+                            @forelse($coupons as $coupon)
+                                <tr>
+                                    <td><strong>{{ $coupon->code }}</strong></td>
+                                    <td>{{ $coupon->discount_percent ? $coupon->discount_percent.' %' : number_format($coupon->discount_amount, 2, ',', ' ').' €' }}</td>
+                                    <td style="font-size:0.85rem;">{{ $coupon->ebook?->title ?? 'Global' }}</td>
+                                    <td style="font-size:0.82rem;color:var(--text-secondary);">
+                                        {{ optional($coupon->valid_from)->format('d/m/y') }}
+                                        @if($coupon->valid_until) → {{ $coupon->valid_until->format('d/m/y') }} @endif
+                                    </td>
+                                    <td style="font-size:0.85rem;">{{ $coupon->used_count }}{{ $coupon->usage_limit ? '/'.$coupon->usage_limit : '' }}</td>
+                                    <td><span class="status-pill {{ $coupon->is_active ? 'paid' : 'pending' }}">{{ $coupon->is_active ? 'Actif' : 'Inactif' }}</span></td>
+                                    <td>
+                                        <div style="display:flex;gap:0.4rem;">
+                                            <form method="POST" action="{{ route('admin.coupons.toggle', $coupon) }}">@csrf @method('PATCH')<button class="btn-ghost btn-xs" type="submit">{{ $coupon->is_active ? 'Désactiver' : 'Activer' }}</button></form>
+                                            <form method="POST" action="{{ route('admin.coupons.destroy', $coupon) }}" onsubmit="return confirm('Supprimer ce coupon ?')">@csrf @method('DELETE')<button class="btn-ghost btn-xs" type="submit" style="color:var(--cardinal);border-color:var(--cardinal);">Suppr.</button></form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucun coupon créé.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
         {{-- ══ PAIEMENTS CONFIG ══ --}}
         <div x-show="tab === 'payment_cfg'" x-cloak>
             <div class="admin-section-header">

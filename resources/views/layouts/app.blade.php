@@ -57,6 +57,7 @@
             <li><a class="nav-link{{ request()->routeIs('contact') ? ' active' : '' }}" href="{{ route('contact') }}">Contact</a></li>
             @auth
             <li><a class="nav-link{{ request()->routeIs('ebooks.mine') ? ' active' : '' }}" href="{{ route('ebooks.mine') }}">Mes e-Livres</a></li>
+            <li><a class="nav-link{{ request()->routeIs('wishlist.index') ? ' active' : '' }}" href="{{ route('wishlist.index') }}">Mes envies</a></li>
             {{-- <li><a class="nav-link{{ request()->routeIs('profile.edit') ? ' active' : '' }}" href="{{ route('profile.edit') }}">Mon profil</a></li> --}}
             @endauth
             @can('manage-ebooks')
@@ -131,8 +132,12 @@
         @auth
         <div class="drawer-separator"></div>
         <a href="{{ route('ebooks.mine') }}" class="drawer-link{{ request()->routeIs('ebooks.mine') ? ' drawer-link--active' : '' }}">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
             Mes e-Livres
+        </a>
+        <a href="{{ route('wishlist.index') }}" class="drawer-link{{ request()->routeIs('wishlist.index') ? ' drawer-link--active' : '' }}">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            Mes envies
         </a>
         <a href="{{ route('profile.edit') }}" class="drawer-link{{ request()->routeIs('profile.edit') ? ' drawer-link--active' : '' }}">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
