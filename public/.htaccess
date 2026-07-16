@@ -1,15 +1,15 @@
-# PHP upload limits
+# PHP upload limits (cas Apache mod_php ; pour PHP-FPM/CGI voir public/.user.ini)
 <IfModule mod_php.c>
-    php_value upload_max_filesize 60M
-    php_value post_max_size 65M
-    php_value memory_limit 256M
-    php_value max_execution_time 120
+    php_value upload_max_filesize 512M
+    php_value post_max_size 520M
+    php_value memory_limit 512M
+    php_value max_execution_time 300
 </IfModule>
 <IfModule mod_php8.c>
-    php_value upload_max_filesize 60M
-    php_value post_max_size 65M
-    php_value memory_limit 256M
-    php_value max_execution_time 120
+    php_value upload_max_filesize 512M
+    php_value post_max_size 520M
+    php_value memory_limit 512M
+    php_value max_execution_time 300
 </IfModule>
 
 <IfModule mod_rewrite.c>
