@@ -359,6 +359,31 @@
         if (e.key === 'Escape' && readerShell.classList.contains('fullscreen')) toggleFullscreen();
     });
 
+    // ── Swipe tactile pour tourner les pages (quand le document n'est pas zoomé) ──
+    let swipeX = 0, swipeY = 0, swipeT = 0, swipeActive = false;
+    readerBox?.addEventListener('touchstart', e => {
+        if (e.touches.length !== 1) { swipeActive = false; return; }
+        swipeActive = true;
+        swipeX = e.touches[0].clientX;
+        swipeY = e.touches[0].clientY;
+        swipeT = Date.now();
+    }, { passive: true });
+    readerBox?.addEventListener('touchend', e => {
+        if (!swipeActive) return;
+        swipeActive = false;
+        // Si le document est zoomé, on laisse le défilement/déplacement natif
+        if (scaleRatio > 1.05) return;
+        const t  = e.changedTouches[0];
+        const dx = t.clientX - swipeX;
+        const dy = t.clientY - swipeY;
+        const dt = Date.now() - swipeT;
+        // Geste horizontal franc et rapide
+        if (dt < 700 && Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.6) {
+            if (dx < 0) showPage(pageNum + 1);   // swipe vers la gauche → page suivante
+            else        showPage(pageNum - 1);   // swipe vers la droite → page précédente
+        }
+    }, { passive: true });
+
     // ── Chargement PDF ────────────────────────────────────────
     const pdfjsLib = window['pdfjs-dist/build/pdf'] || window.pdfjsLib;
     if (!pdfjsLib) { showError('PDF.js non disponible.'); return; }
