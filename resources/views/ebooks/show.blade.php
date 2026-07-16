@@ -3,10 +3,31 @@
 @section('title', $ebook->title . ' — APACC-M')
 
 @php
-    $ogImage = $ebook->cover_image
+    $hasCover = (bool) $ebook->cover_image;
+    $ogImage = $hasCover
         ? asset('storage/' . $ebook->cover_image)
         : asset('icons/icon.svg');
-    $ogDesc = \Illuminate\Support\Str::limit(strip_tags($ebook->description ?? ''), 200);
+
+    // Dimensions et type réels de la couverture (aide les plateformes à afficher l'aperçu)
+    $ogImageW = $ogImageH = null;
+    $ogImageType = 'image/png';
+    if ($hasCover) {
+        try {
+            $coverPath = \Illuminate\Support\Facades\Storage::disk('public')->path($ebook->cover_image);
+            if (is_file($coverPath) && ($size = @getimagesize($coverPath))) {
+                [$ogImageW, $ogImageH] = $size;
+                $ogImageType = $size['mime'] ?? $ogImageType;
+            }
+        } catch (\Throwable $e) {
+            // silencieux : on garde l'URL sans dimensions
+        }
+    }
+
+    // Description propre : sans HTML ni retours à la ligne
+    $ogDesc = \Illuminate\Support\Str::limit(
+        trim(preg_replace('/\s+/', ' ', strip_tags($ebook->description ?? ''))),
+        200
+    );
 @endphp
 
 @section('meta')
@@ -15,6 +36,12 @@
     <meta property="og:title" content="{{ $ebook->title }}">
     <meta property="og:description" content="{{ $ogDesc }}">
     <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:secure_url" content="{{ $ogImage }}">
+    <meta property="og:image:type" content="{{ $ogImageType }}">
+    @if($ogImageW && $ogImageH)
+        <meta property="og:image:width" content="{{ $ogImageW }}">
+        <meta property="og:image:height" content="{{ $ogImageH }}">
+    @endif
     <meta property="og:image:alt" content="Couverture — {{ $ebook->title }}">
     <meta property="og:url" content="{{ route('ebooks.show', $ebook) }}">
     <meta property="og:locale" content="fr_FR">
