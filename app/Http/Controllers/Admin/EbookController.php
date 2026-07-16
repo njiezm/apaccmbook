@@ -35,7 +35,7 @@ class EbookController extends Controller
             'description'   => ['required', 'string'],
             'price'         => ['required', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
-            'pdf'           => ['required', 'file', 'mimes:pdf', 'max:61440'],
+            'pdf'           => ['required', 'file', 'mimes:pdf', 'max:512000'],
             'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
 
@@ -73,7 +73,7 @@ class EbookController extends Controller
             'description'   => ['required', 'string'],
             'price'         => ['required', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
-            'pdf'           => ['nullable', 'file', 'mimes:pdf', 'max:61440'],
+            'pdf'           => ['nullable', 'file', 'mimes:pdf', 'max:512000'],
             'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
 

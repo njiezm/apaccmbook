@@ -174,7 +174,7 @@
                     <input id="modal_price" name="price" type="number" step="0.01" min="0" required>
                     <label class="text-muted" for="modal_link">Lien HelloAsso (optionnel)</label>
                     <input id="modal_link" name="helloasso_url" type="url">
-                    <label class="text-muted" for="modal_pdf">PDF sécurisé (max 60 Mo)</label>
+                    <label class="text-muted" for="modal_pdf">PDF sécurisé (max 500 Mo)</label>
                     <input id="modal_pdf" name="pdf" type="file" accept="application/pdf" required>
                     <label class="text-muted" for="modal_cover">Couverture</label>
                     <input id="modal_cover" name="cover" type="file" accept="image/*">
@@ -200,7 +200,7 @@
                     <input id="modal_price_edit" name="price" type="number" step="0.01" min="0" :value="editEbook ? editEbook.price : ''" required>
                     <label class="text-muted" for="modal_link_edit">Lien HelloAsso (optionnel)</label>
                     <input id="modal_link_edit" name="helloasso_url" type="url" :value="editEbook ? editEbook.helloasso_url : ''">
-                    <label class="text-muted" for="modal_pdf_edit">PDF (optionnel, max 60 Mo)</label>
+                    <label class="text-muted" for="modal_pdf_edit">PDF (optionnel, max 500 Mo)</label>
                     <input id="modal_pdf_edit" name="pdf" type="file" accept="application/pdf">
                     <label class="text-muted" for="modal_cover_edit">Couverture (optionnelle)</label>
                     <input id="modal_cover_edit" name="cover" type="file" accept="image/*">
