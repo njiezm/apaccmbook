@@ -46,7 +46,10 @@
 
                 <div style="margin-top:0.5rem;padding-top:0.75rem;border-top:1px solid var(--border-light);">
                     @if($purchase->payment_status === \App\Models\Purchase::STATUS_PAID)
-                        <a class="btn-primary" href="{{ route('ebooks.read', $purchase->ebook) }}" style="display:inline-block;">Lire maintenant</a>
+                        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;">
+                            <a class="btn-primary" href="{{ route('ebooks.read', $purchase->ebook) }}" style="display:inline-block;">Lire maintenant</a>
+                            <a class="btn-ghost btn-sm" href="{{ route('purchases.receipt', $purchase) }}" target="_blank" rel="noopener">Reçu</a>
+                        </div>
                     @else
                         <p style="font-size:0.82rem;color:var(--text-muted);margin:0;">Validation en cours — un administrateur confirme votre paiement sous 12 à 24 h.</p>
                     @endif

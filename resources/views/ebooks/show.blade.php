@@ -140,6 +140,30 @@
                 @endauth
             </div>
 
+            {{-- Partage social --}}
+            @php
+                $shareUrl = urlencode(route('ebooks.show', $ebook));
+                $shareText = urlencode($ebook->title . ' — APACC-M e-Livre');
+            @endphp
+            <div style="display:flex;align-items:center;gap:0.5rem;margin:0.25rem 0 0.5rem;" x-data="{ copied:false }">
+                <span style="font-size:0.8rem;color:var(--text-muted);">Partager :</span>
+                <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener" title="WhatsApp" style="width:32px;height:32px;border-radius:50%;background:#25D366;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                    <i class="fa-brands fa-whatsapp"></i>
+                </a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener" title="Facebook" style="width:32px;height:32px;border-radius:50%;background:#1877F2;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                    <i class="fa-brands fa-facebook-f"></i>
+                </a>
+                <a href="mailto:?subject={{ $shareText }}&body={{ $shareUrl }}" title="Email" style="width:32px;height:32px;border-radius:50%;background:var(--text-secondary);color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                    <i class="fa-solid fa-envelope"></i>
+                </a>
+                <button type="button" title="Copier le lien"
+                        @click="navigator.clipboard.writeText('{{ route('ebooks.show', $ebook) }}').then(()=>{copied=true;setTimeout(()=>copied=false,1800)})"
+                        style="width:32px;height:32px;border-radius:50%;background:var(--border-medium);color:var(--text-primary);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-link"></i>
+                </button>
+                <span x-cloak x-show="copied" style="font-size:0.78rem;color:var(--cardinal);">Lien copié ✓</span>
+            </div>
+
             {{-- Métadonnées --}}
             <div class="product-meta">
                 @if($ebook->author)

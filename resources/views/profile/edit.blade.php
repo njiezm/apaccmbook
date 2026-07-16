@@ -17,10 +17,17 @@
             {{-- Carte gauche --}}
             <aside class="profile-card">
                 <div class="profile-avatar-wrap">
-                    <div class="profile-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                    @if($user->avatar_path)
+                        <img src="{{ asset('storage/' . $user->avatar_path) }}" alt="{{ $user->name }}" class="profile-avatar" style="object-fit:cover;padding:0;">
+                    @else
+                        <div class="profile-avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</div>
+                    @endif
                 </div>
                 <p class="profile-name">{{ $user->name }}</p>
                 <p class="profile-email">{{ $user->email }}</p>
+                @if($user->bio)
+                    <p style="font-size:0.85rem;color:var(--text-secondary);line-height:1.6;margin-top:0.75rem;">{{ $user->bio }}</p>
+                @endif
 
                 @php
                     $purchaseCount  = $user->purchases()->where('payment_status', 'paid')->count();
@@ -71,7 +78,7 @@
                         <h3>Informations personnelles</h3>
                     </div>
                     <div class="profile-section-body">
-                        <form method="POST" action="{{ route('profile.update') }}">
+                        <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
                             @csrf
                             @method('PATCH')
                             <div class="profile-field">
@@ -83,6 +90,16 @@
                                 <label for="email">Adresse email</label>
                                 <input id="email" name="email" type="email" value="{{ old('email', $user->email) }}" required autocomplete="email">
                                 @error('email')<p class="error-text">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="profile-field">
+                                <label for="avatar">Photo de profil</label>
+                                <input id="avatar" name="avatar" type="file" accept="image/*">
+                                @error('avatar')<p class="error-text">{{ $message }}</p>@enderror
+                            </div>
+                            <div class="profile-field">
+                                <label for="bio">Bio <small style="color:var(--text-muted);font-weight:400;">(optionnel)</small></label>
+                                <textarea id="bio" name="bio" rows="3" maxlength="1000" placeholder="Quelques mots sur vous…">{{ old('bio', $user->bio) }}</textarea>
+                                @error('bio')<p class="error-text">{{ $message }}</p>@enderror
                             </div>
                             <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
                                 <button type="submit" class="btn-primary">Sauvegarder</button>

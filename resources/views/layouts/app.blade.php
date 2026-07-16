@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    {{-- Thème sombre : appliqué avant le rendu pour éviter le flash --}}
+    <script>try{if(localStorage.getItem('theme')==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
     <meta name="theme-color" content="#b91c1c">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -66,9 +68,17 @@
         </ul>
 
         <div class="nav-actions">
+            <button type="button" class="theme-toggle" onclick="toggleTheme()" aria-label="Basculer le thème clair/sombre" title="Thème clair/sombre" style="background:none;border:none;cursor:pointer;color:var(--text-secondary);padding:0.35rem;display:inline-flex;align-items:center;">
+                <svg class="theme-icon-light" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                <svg class="theme-icon-dark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
             @auth
                 <a href="{{ route('profile.edit') }}" class="nav-user{{ request()->routeIs('profile.edit') ? ' active' : '' }}" style="text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem;" title="Mon profil">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    @if(Auth::user()->avatar_path)
+                        <img src="{{ asset('storage/' . Auth::user()->avatar_path) }}" alt="" style="width:24px;height:24px;border-radius:50%;object-fit:cover;">
+                    @else
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    @endif
                     {{ Auth::user()->name }}
                 </a>
                 <form method="POST" action="{{ route('logout') }}" class="m-0">
@@ -103,7 +113,11 @@
 
     @auth
     <div class="drawer-user">
-        <div class="drawer-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
+        @if(Auth::user()->avatar_path)
+            <img src="{{ asset('storage/' . Auth::user()->avatar_path) }}" alt="" class="drawer-avatar" style="object-fit:cover;">
+        @else
+            <div class="drawer-avatar">{{ strtoupper(substr(Auth::user()->name, 0, 1)) }}</div>
+        @endif
         <div>
             <div class="drawer-user-name">{{ Auth::user()->name }}</div>
             <div class="drawer-user-email">{{ Auth::user()->email }}</div>
@@ -155,6 +169,10 @@
     </nav>
 
     <div class="drawer-footer">
+        <button type="button" onclick="toggleTheme()" class="drawer-link" style="width:100%;background:none;border:none;cursor:pointer;text-align:left;margin-bottom:0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            <span>Thème clair / sombre</span>
+        </button>
         @auth
         <form method="POST" action="{{ route('logout') }}">
             @csrf
@@ -331,6 +349,25 @@ if ('serviceWorker' in navigator) {
             .catch(() => {});
     });
 }
+
+// ── Thème clair / sombre ──
+function applyThemeIcons() {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    document.querySelectorAll('.theme-icon-light').forEach(el => el.style.display = dark ? 'none' : '');
+    document.querySelectorAll('.theme-icon-dark').forEach(el => el.style.display = dark ? '' : 'none');
+}
+function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        try { localStorage.setItem('theme', 'light'); } catch (e) {}
+    } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+    }
+    applyThemeIcons();
+}
+document.addEventListener('DOMContentLoaded', applyThemeIcons);
 </script>
 
 @yield('scripts')

@@ -55,6 +55,7 @@ Route::middleware('auth')->group(function () {
     // Achat manuel (HelloAsso confirm, virement, chèque)
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     Route::patch('/purchases/{purchase}/status', [PurchaseController::class, 'updateStatus'])->name('purchases.status.update');
+    Route::get('/purchases/{purchase}/receipt', [PurchaseController::class, 'receipt'])->name('purchases.receipt');
 
     // Checkout automatisé (Stripe, PayPal, SumUp)
     Route::post('/checkout/{ebook}/stripe', [CheckoutController::class, 'stripe'])->name('checkout.stripe');

@@ -71,6 +71,17 @@ class PurchaseController extends Controller
         return back()->with('status', $message);
     }
 
+    public function receipt(Purchase $purchase)
+    {
+        // Seul le propriétaire d'un achat validé peut voir son reçu
+        abort_unless($purchase->user_id === auth()->id(), 403);
+        abort_unless($purchase->payment_status === Purchase::STATUS_PAID, 403, 'Reçu disponible après validation du paiement.');
+
+        $purchase->loadMissing('ebook', 'user');
+
+        return view('purchases.receipt', compact('purchase'));
+    }
+
     public function updateStatus(Purchase $purchase)
     {
         Gate::authorize('validate-purchase');

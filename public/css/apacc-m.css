@@ -30,6 +30,23 @@
     --transition:      0.22s ease;
 }
 
+/* ── Mode sombre ── (bascule via [data-theme="dark"] sur <html>) */
+:root[data-theme="dark"] {
+    --cream:           #14130f;
+    --white:           #1e1c18;
+    --footer-bg:       #17150f;
+    --text-primary:    #f1eee7;
+    --text-secondary:  #c6c0b4;
+    --text-muted:      #97917f;
+    --border-light:    #34312a;
+    --border-medium:   #403c33;
+    --shadow-soft:     0 2px 12px rgba(0,0,0,0.4);
+    --shadow-medium:   0 6px 24px rgba(0,0,0,0.5);
+    --shadow-strong:   0 16px 48px rgba(0,0,0,0.6);
+}
+:root[data-theme="dark"] body { background-color: var(--cream); }
+:root[data-theme="dark"] img { filter: brightness(0.94); }
+
 /* === Reset & Base === */
 *, *::before, *::after { box-sizing: border-box; }
 
