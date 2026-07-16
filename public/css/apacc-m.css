@@ -2008,8 +2008,17 @@ body.drawer-open { overflow: hidden; }
         display: flex;
     }
 
-    /* Espace en bas pour ne pas masquer le contenu */
+    /* Header fixe sur mobile : reste en place au défilement sur toutes les pages */
+    .site-navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+    }
+
+    /* Espace haut (header fixe ~62px) + bas (bottom nav ~64px) */
     body {
+        padding-top: calc(62px + env(safe-area-inset-top, 0));
         padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
     }
 
