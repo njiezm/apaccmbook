@@ -82,9 +82,21 @@ class CatalogController extends Controller
 
     public function read(Ebook $ebook)
     {
-        $purchase = auth()->user()
-            ? auth()->user()->purchases()->where('ebook_id', $ebook->id)->where('payment_status', \App\Models\Purchase::STATUS_PAID)->first()
+        $user = auth()->user();
+        $purchase = $user
+            ? $user->purchases()->where('ebook_id', $ebook->id)->where('payment_status', \App\Models\Purchase::STATUS_PAID)->first()
             : null;
+
+        // Livre gratuit : accès sans paiement, on enregistre l'accès pour « Mes e-Livres »
+        if (!$purchase && $user && $ebook->is_free) {
+            $purchase = $user->purchases()->firstOrCreate(
+                ['ebook_id' => $ebook->id],
+                ['payment_method' => 'gratuit', 'payment_status' => \App\Models\Purchase::STATUS_PAID]
+            );
+            if ($purchase->payment_status !== \App\Models\Purchase::STATUS_PAID) {
+                $purchase->update(['payment_status' => \App\Models\Purchase::STATUS_PAID]);
+            }
+        }
 
         if (!$purchase) {
             return redirect()->route('ebooks.show', $ebook)->with('error', 'Vous devez avoir un achat validé pour lire cet eBook.');
@@ -95,11 +107,13 @@ class CatalogController extends Controller
 
     public function servePdf(Ebook $ebook)
     {
-        $purchase = auth()->user()
-            ? auth()->user()->purchases()->where('ebook_id', $ebook->id)->where('payment_status', \App\Models\Purchase::STATUS_PAID)->first()
-            : null;
+        $user = auth()->user();
+        $hasAccess = $user && (
+            $ebook->is_free ||
+            $user->purchases()->where('ebook_id', $ebook->id)->where('payment_status', \App\Models\Purchase::STATUS_PAID)->exists()
+        );
 
-        if (!$purchase) {
+        if (!$hasAccess) {
             abort(403, 'Accès non autorisé.');
         }
 

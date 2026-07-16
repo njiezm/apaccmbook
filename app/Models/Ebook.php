@@ -18,6 +18,7 @@ class Ebook extends Model
         'description',
         'short_description',
         'price',
+        'is_free',
         'file_path',
         'cover_image',
         'helloasso_url',
@@ -30,6 +31,7 @@ class Ebook extends Model
 
     protected $casts = [
         'price' => 'decimal:2',
+        'is_free' => 'boolean',
         'published_date' => 'date',
     ];
 

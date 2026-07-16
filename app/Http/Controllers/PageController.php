@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ContactMessageMail;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class PageController extends Controller
 {
@@ -25,10 +28,18 @@ class PageController extends Controller
             'message' => 'required|string|min:10',
         ]);
 
-        // Here you would send the email
-        // Mail::send('emails.contact', $validated, function ($message) use ($validated) {
-        //     $message->to('contact@apacc-m.fr')->subject($validated['subject']);
-        // });
+        // Destinataires : tous les administrateurs, sinon l'adresse d'expédition par défaut
+        $recipients = User::where('is_admin', true)->pluck('email');
+        if ($recipients->isEmpty()) {
+            $recipients = collect([config('mail.from.address')]);
+        }
+
+        Mail::to($recipients->all())->queue(new ContactMessageMail(
+            $validated['name'],
+            $validated['email'],
+            $validated['subject'],
+            $validated['message'],
+        ));
 
         return back()->with('success', 'Message envoyé avec succès !');
     }

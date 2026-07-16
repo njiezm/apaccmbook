@@ -12,6 +12,19 @@
     <meta name="description" content="Bibliothèque numérique de l'APACC-M — patrimoine culturel et religieux martiniquais">
     <title>@yield('title', 'APACC-M e-Livre')</title>
 
+    {{-- Open Graph / Twitter — aperçu au partage --}}
+    @hasSection('meta')
+        @yield('meta')
+    @else
+        <meta property="og:type" content="website">
+        <meta property="og:site_name" content="APACC-M e-Livre">
+        <meta property="og:title" content="@yield('title', 'APACC-M e-Livre')">
+        <meta property="og:description" content="Bibliothèque numérique de l'APACC-M — patrimoine culturel et religieux martiniquais">
+        <meta property="og:image" content="{{ asset('icons/icon.svg') }}">
+        <meta property="og:url" content="{{ url()->current() }}">
+        <meta name="twitter:card" content="summary_large_image">
+    @endif
+
     <link rel="icon" href="{{ asset('icons/icon.svg') }}" type="image/svg+xml">
     <link rel="alternate icon" href="{{ asset('favicon.ico') }}">
     <link rel="manifest" href="{{ asset('manifest.json') }}">

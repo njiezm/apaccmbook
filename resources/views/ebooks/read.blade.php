@@ -283,16 +283,43 @@
         const entering = !readerShell.classList.contains('fullscreen');
         readerShell.classList.toggle('fullscreen');
 
-        if (entering) {
-            // Réinitialise le zoom pour un affichage "fit to screen" propre
-            scaleRatio = 1;
-            updateZoom();
-        }
+        // Réinitialise le zoom dans les deux sens pour un "fit to screen" propre
+        // (à l'entrée ET à la sortie, pour que le document se réadapte à l'écran)
+        scaleRatio = 1;
+        updateZoom();
 
         if (fullscreenBtn) fullscreenBtn.textContent   = entering ? 'Quitter' : 'Plein écran';
         if (floatFullscreen) floatFullscreen.textContent = entering ? '✕' : '⛶';
         if (pdfDoc) queueRender(pageNum);
     };
+
+    // ── Glisser pour déplacer (pan) quand le document dépasse l'écran ──
+    let isPanning = false, panStartX = 0, panStartY = 0, panLeft = 0, panTop = 0;
+    readerWrapper?.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'mouse') return; // le tactile garde le scroll natif
+        const canScroll = readerWrapper.scrollWidth > readerWrapper.clientWidth ||
+                          readerWrapper.scrollHeight > readerWrapper.clientHeight;
+        if (!canScroll) return;
+        isPanning = true;
+        readerWrapper.classList.add('panning');
+        panStartX = e.clientX; panStartY = e.clientY;
+        panLeft = readerWrapper.scrollLeft; panTop = readerWrapper.scrollTop;
+        try { readerWrapper.setPointerCapture(e.pointerId); } catch (_) {}
+        e.preventDefault();
+    });
+    readerWrapper?.addEventListener('pointermove', e => {
+        if (!isPanning) return;
+        readerWrapper.scrollLeft = panLeft - (e.clientX - panStartX);
+        readerWrapper.scrollTop  = panTop  - (e.clientY - panStartY);
+    });
+    const endPan = (e) => {
+        if (!isPanning) return;
+        isPanning = false;
+        readerWrapper.classList.remove('panning');
+        try { readerWrapper.releasePointerCapture(e.pointerId); } catch (_) {}
+    };
+    readerWrapper?.addEventListener('pointerup', endPan);
+    readerWrapper?.addEventListener('pointercancel', endPan);
 
     // ── Événements ────────────────────────────────────────────
     prevBtn?.addEventListener('click',        () => showPage(pageNum - 1));

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewsletterWelcomeMail;
 use App\Models\Subscriber;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class NewsletterController extends Controller
 {
@@ -13,10 +15,15 @@ class NewsletterController extends Controller
             'email' => ['required', 'email', 'max:255'],
         ]);
 
-        Subscriber::firstOrCreate(
+        $subscriber = Subscriber::firstOrCreate(
             ['email' => $request->email],
             ['is_active' => true]
         );
+
+        // Mail de confirmation uniquement pour une nouvelle inscription
+        if ($subscriber->wasRecentlyCreated) {
+            Mail::to($subscriber->email)->queue(new NewsletterWelcomeMail($subscriber->email));
+        }
 
         if ($request->wantsJson()) {
             return response()->json(['message' => 'Merci ! Vous êtes inscrit(e) à notre newsletter.']);

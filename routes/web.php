@@ -32,8 +32,8 @@ Route::get('/legal', [PageController::class, 'legal'])->name('legal');
 // Authenticated user routes
 Route::middleware('auth')->group(function () {
     Route::get('/my-ebooks', [CatalogController::class, 'mine'])->name('ebooks.mine');
-    Route::get('/ebook/{ebook}/read', [CatalogController::class, 'read'])->name('ebooks.read');
-    Route::get('/ebook/{ebook}/pdf', [CatalogController::class, 'servePdf'])->name('ebooks.pdf');
+    Route::get('/ebook/{ebook}/read', [CatalogController::class, 'read'])->middleware('verified')->name('ebooks.read');
+    Route::get('/ebook/{ebook}/pdf', [CatalogController::class, 'servePdf'])->middleware('verified')->name('ebooks.pdf');
 
     // Achat manuel (HelloAsso confirm, virement, chèque)
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');

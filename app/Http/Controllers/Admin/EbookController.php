@@ -33,11 +33,14 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
-            'price'         => ['required', 'numeric', 'min:0'],
+            'is_free'       => ['sometimes', 'boolean'],
+            'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
             'pdf'           => ['required', 'file', 'mimes:pdf', 'max:512000'],
             'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
+
+        $isFree = $request->boolean('is_free');
 
         $pdf = $request->file('pdf');
         $pdfPath = $this->storePdf($pdf);
@@ -50,8 +53,9 @@ class EbookController extends Controller
         $ebook = Ebook::create([
             'title'         => $data['title'],
             'description'   => $data['description'],
-            'price'         => $data['price'],
-            'helloasso_url' => $data['helloasso_url'] ?? null,
+            'is_free'       => $isFree,
+            'price'         => $isFree ? 0 : ($data['price'] ?? 0),
+            'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? null),
             'file_path'     => $pdfPath,
             'cover_image'   => $coverImage,
             'status'        => 'published',
@@ -71,11 +75,14 @@ class EbookController extends Controller
         $data = $request->validate([
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['required', 'string'],
-            'price'         => ['required', 'numeric', 'min:0'],
+            'is_free'       => ['sometimes', 'boolean'],
+            'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
             'helloasso_url' => ['nullable', 'url'],
             'pdf'           => ['nullable', 'file', 'mimes:pdf', 'max:512000'],
             'cover'         => ['nullable', 'image', 'max:4096'],
         ]);
+
+        $isFree = $request->boolean('is_free');
 
         $filePath = $ebook->file_path;
         if ($request->hasFile('pdf')) {
@@ -94,8 +101,9 @@ class EbookController extends Controller
         $ebook->update([
             'title'         => $data['title'],
             'description'   => $data['description'],
-            'price'         => $data['price'],
-            'helloasso_url' => $data['helloasso_url'] ?? $ebook->helloasso_url,
+            'is_free'       => $isFree,
+            'price'         => $isFree ? 0 : ($data['price'] ?? 0),
+            'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? $ebook->helloasso_url),
             'file_path'     => $filePath,
             'cover_image'   => $coverImage,
         ]);

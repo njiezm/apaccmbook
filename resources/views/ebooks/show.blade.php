@@ -2,6 +2,28 @@
 
 @section('title', $ebook->title . ' — APACC-M')
 
+@php
+    $ogImage = $ebook->cover_image
+        ? asset('storage/' . $ebook->cover_image)
+        : asset('icons/icon.svg');
+    $ogDesc = \Illuminate\Support\Str::limit(strip_tags($ebook->description ?? ''), 200);
+@endphp
+
+@section('meta')
+    <meta property="og:type" content="book">
+    <meta property="og:site_name" content="APACC-M e-Livre">
+    <meta property="og:title" content="{{ $ebook->title }}">
+    <meta property="og:description" content="{{ $ogDesc }}">
+    <meta property="og:image" content="{{ $ogImage }}">
+    <meta property="og:image:alt" content="Couverture — {{ $ebook->title }}">
+    <meta property="og:url" content="{{ route('ebooks.show', $ebook) }}">
+    <meta property="og:locale" content="fr_FR">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $ebook->title }}">
+    <meta name="twitter:description" content="{{ $ogDesc }}">
+    <meta name="twitter:image" content="{{ $ogImage }}">
+@endsection
+
 @section('content')
 
 {{-- Fil d'Ariane --}}
@@ -72,12 +94,24 @@
             {{-- Bloc achat --}}
             <div class="product-purchase-box">
                 <div class="product-price-block" style="margin-bottom:1rem;">
-                    {{ number_format($ebook->price, 2, ',', ' ') }} €
+                    @if($ebook->is_free)
+                        <span style="color:var(--cardinal,#b91c1c);">Gratuit</span>
+                    @else
+                        {{ number_format($ebook->price, 2, ',', ' ') }} €
+                    @endif
                 </div>
 
                 @php $methods = $paymentSettings['enabled_methods'] ?? ['helloasso']; @endphp
 
-                @if($purchase)
+                @if($ebook->is_free && (!$purchase || $purchase->payment_status !== \App\Models\Purchase::STATUS_PAID))
+                    {{-- ── Livre gratuit ── --}}
+                    @auth
+                        <a class="btn-primary" href="{{ route('ebooks.read', $ebook) }}" style="display:block;text-align:center;">Lire gratuitement</a>
+                    @else
+                        <a href="{{ route('login') }}" class="btn-secondary" style="display:block;text-align:center;">Connectez-vous pour lire gratuitement</a>
+                    @endauth
+
+                @elseif($purchase)
                     {{-- ── Achat existant ── --}}
                     <div style="margin-bottom:1rem;">
                         <span class="status-pill {{ $purchase->payment_status }}" style="margin-bottom:0.5rem;display:inline-block;">

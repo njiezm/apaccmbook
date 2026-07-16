@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Mail\AccessGrantedMail;
+use App\Mail\NewSaleAdminMail;
 use App\Mail\PaymentPendingMail;
 use App\Models\Purchase;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
@@ -32,6 +34,13 @@ class PurchaseController extends Controller
                 'payment_method' => $method,
             ]);
             Mail::to($purchase->user->email)->queue(new PaymentPendingMail($purchase->load('ebook')));
+
+            // Alerte les administrateurs qu'une vente est à valider
+            $adminEmails = User::where('is_admin', true)->pluck('email');
+            if ($adminEmails->isNotEmpty()) {
+                Mail::to($adminEmails->all())->queue(new NewSaleAdminMail($purchase->load('user', 'ebook')));
+            }
+
             $message = 'Votre demande a bien été enregistrée. Un email de confirmation vous a été envoyé. Un administrateur validera votre paiement sous 12 à 24 h.';
         } else {
             $existing->update(['payment_method' => $method]);

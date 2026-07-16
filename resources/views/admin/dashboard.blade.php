@@ -124,6 +124,7 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             'id'            => $ebook->id,
                             'title'         => $ebook->title,
                             'price'         => number_format($ebook->price, 2, '.', ''),
+                            'is_free'       => (bool) $ebook->is_free,
                             'helloasso_url' => $ebook->helloasso_url,
                             'description'   => $ebook->description,
                             'update_url'    => route('admin.ebooks.update', $ebook),
@@ -368,13 +369,17 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <h3>Ajouter un e-Livre</h3>
                 <button type="button" class="btn-close" @click="closeModals()">×</button>
             </div>
-            <form method="POST" action="{{ route('admin.ebooks.store') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.ebooks.store') }}" enctype="multipart/form-data" x-data="{ free: false }">
                 @csrf
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" required placeholder="Titre de la publication"></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required placeholder="Description…"></textarea></div>
-                <div class="admin-form-row">
-                    <div class="admin-field"><label>Prix (€) *</label><input name="price" type="number" step="0.01" min="0" required placeholder="0.00"></div>
-                    <div class="admin-field"><label>Lien HelloAsso *</label><input name="helloasso_url" type="url" required placeholder="https://…"></div>
+                <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
+                    <input id="add_is_free" name="is_free" type="checkbox" value="1" x-model="free" style="width:auto;margin:0;">
+                    <label for="add_is_free" style="margin:0;cursor:pointer;">Livre gratuit (aucun paiement requis)</label>
+                </div>
+                <div class="admin-form-row" x-show="!free" x-cloak>
+                    <div class="admin-field"><label>Prix (€) *</label><input name="price" type="number" step="0.01" min="0" :required="!free" placeholder="0.00"></div>
+                    <div class="admin-field"><label>Lien HelloAsso</label><input name="helloasso_url" type="url" placeholder="https://…"></div>
                 </div>
                 <div class="admin-form-row">
                     <div class="admin-field"><label>Fichier PDF *</label><input name="pdf" type="file" accept="application/pdf" required></div>
@@ -392,13 +397,17 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <h3 x-text="editEbook ? 'Modifier — ' + editEbook.title : 'Modifier'">Modifier</h3>
                 <button type="button" class="btn-close" @click="closeModals()">×</button>
             </div>
-            <form :action="editAction" method="POST" enctype="multipart/form-data">
+            <form :action="editAction" method="POST" enctype="multipart/form-data" x-data="{ free: false }" x-effect="free = !!(editEbook && editEbook.is_free)">
                 @csrf @method('PATCH')
-                <input type="hidden" name="title" :value="editEbook ? editEbook.title : ''">
-                <input type="hidden" name="description" :value="editEbook ? editEbook.description : ''">
-                <div class="admin-form-row">
-                    <div class="admin-field"><label>Prix (€)</label><input name="price" type="number" step="0.01" min="0" :value="editEbook ? editEbook.price : ''" required></div>
-                    <div class="admin-field"><label>Lien HelloAsso</label><input name="helloasso_url" type="url" :value="editEbook ? editEbook.helloasso_url : ''" required></div>
+                <div class="admin-field"><label>Titre *</label><input name="title" type="text" :value="editEbook ? editEbook.title : ''" required></div>
+                <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required x-effect="$el.value = editEbook ? editEbook.description : ''"></textarea></div>
+                <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
+                    <input id="edit_is_free" name="is_free" type="checkbox" value="1" x-model="free" style="width:auto;margin:0;">
+                    <label for="edit_is_free" style="margin:0;cursor:pointer;">Livre gratuit (aucun paiement requis)</label>
+                </div>
+                <div class="admin-form-row" x-show="!free" x-cloak>
+                    <div class="admin-field"><label>Prix (€)</label><input name="price" type="number" step="0.01" min="0" :value="editEbook ? editEbook.price : ''" :required="!free"></div>
+                    <div class="admin-field"><label>Lien HelloAsso</label><input name="helloasso_url" type="url" :value="editEbook ? editEbook.helloasso_url : ''"></div>
                 </div>
                 <div class="admin-form-row">
                     <div class="admin-field"><label>Nouveau PDF</label><input name="pdf" type="file" accept="application/pdf"></div>
