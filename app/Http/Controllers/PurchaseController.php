@@ -21,10 +21,23 @@ class PurchaseController extends Controller
         ]);
 
         $method   = $request->input('payment_method', 'helloasso');
+        $ebook    = \App\Models\Ebook::findOrFail($request->ebook_id);
         $existing = $request->user()->purchases()->where('ebook_id', $request->ebook_id)->first();
 
         if ($existing && $existing->payment_status === Purchase::STATUS_PAID) {
             return back()->with('status', 'Vous avez déjà accès à cet eBook.');
+        }
+
+        // Coupon éventuellement appliqué (stocké en session sur la fiche)
+        $couponCode = null;
+        $finalPrice = (float) $ebook->price;
+        $coupon = null;
+        if ($sessionCode = session('coupon_' . $ebook->id)) {
+            $coupon = \App\Models\Coupon::where('code', $sessionCode)->first();
+            if ($coupon && $coupon->isValidForEbook($ebook)) {
+                $couponCode = $coupon->code;
+                $finalPrice = $coupon->finalPrice((float) $ebook->price);
+            }
         }
 
         if (!$existing) {
@@ -32,7 +45,15 @@ class PurchaseController extends Controller
                 'ebook_id'       => $request->ebook_id,
                 'payment_status' => Purchase::STATUS_PENDING,
                 'payment_method' => $method,
+                'coupon_code'    => $couponCode,
+                'final_price'    => $finalPrice,
             ]);
+
+            // Comptabilise l'usage du coupon et le retire de la session
+            if ($coupon) {
+                $coupon->increment('used_count');
+                session()->forget('coupon_' . $ebook->id);
+            }
             Mail::to($purchase->user->email)->queue(new PaymentPendingMail($purchase->load('ebook')));
 
             // Alerte les administrateurs qu'une vente est à valider

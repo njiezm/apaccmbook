@@ -38,6 +38,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/ebook/{ebook}/read', [CatalogController::class, 'read'])->middleware('verified')->name('ebooks.read');
     Route::get('/ebook/{ebook}/pdf', [CatalogController::class, 'servePdf'])->middleware('verified')->name('ebooks.pdf');
 
+    // Liste d'envies
+    Route::get('/wishlist', [\App\Http\Controllers\WishlistController::class, 'index'])->name('wishlist.index');
+    Route::post('/wishlist/{ebook}', [\App\Http\Controllers\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+
+    // Avis / notes
+    Route::post('/ebooks/{ebook}/reviews', [\App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store');
+    Route::delete('/ebooks/{ebook}/reviews', [\App\Http\Controllers\ReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Codes promo (application sur la fiche)
+    Route::post('/ebooks/{ebook}/coupon', [\App\Http\Controllers\CouponController::class, 'apply'])->name('coupon.apply');
+    Route::delete('/ebooks/{ebook}/coupon', [\App\Http\Controllers\CouponController::class, 'remove'])->name('coupon.remove');
+
     // Achat manuel (HelloAsso confirm, virement, chèque)
     Route::post('/purchases', [PurchaseController::class, 'store'])->name('purchases.store');
     Route::patch('/purchases/{purchase}/status', [PurchaseController::class, 'updateStatus'])->name('purchases.status.update');
@@ -80,4 +92,9 @@ Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.'
     Route::delete('/ebooks/{ebook:id}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
     Route::patch('/users/{user:id}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
     Route::delete('/users/{user:id}', [AdminEbookController::class, 'destroyUser'])->name('users.destroy');
+
+    // Coupons de réduction
+    Route::post('/coupons', [\App\Http\Controllers\Admin\CouponController::class, 'store'])->name('coupons.store');
+    Route::patch('/coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])->name('coupons.toggle');
+    Route::delete('/coupons/{coupon}', [\App\Http\Controllers\Admin\CouponController::class, 'destroy'])->name('coupons.destroy');
 });
