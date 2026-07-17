@@ -83,6 +83,7 @@ Route::post('/webhook/sumup',     [WebhookController::class, 'sumup'])->name('we
 // Admin routes
 Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/kit-communication', [AdminController::class, 'kitCommunication'])->name('kit-communication');
     Route::post('/settings', [AdminController::class, 'saveSettings'])->name('settings.save');
     Route::get('/ebooks', [AdminEbookController::class, 'index'])->name('ebooks.index');
     Route::post('/ebooks', [AdminEbookController::class, 'store'])->name('ebooks.store');

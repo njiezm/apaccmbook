@@ -70,6 +70,14 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 Abonnés
                 <span class="admin-sidebar-badge" style="background:var(--text-muted);">{{ $subscribers->count() }}</span>
             </button>
+
+            <div class="admin-sidebar-divider"></div>
+
+            <a href="{{ route('admin.kit-communication') }}" target="_blank" rel="noopener" class="admin-sidebar-item" style="text-decoration:none;">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+                Kit de communication
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.5;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
         </nav>
 
         <div style="margin-top:auto;">

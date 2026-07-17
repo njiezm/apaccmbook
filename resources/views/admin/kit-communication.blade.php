@@ -4,9 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>APACC-M e-Livre — Kit de communication</title>
-<link rel="icon" href="favicon.ico" sizes="any">
-<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
-<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="icon" href="{{ asset('favicon.ico') }}" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ asset('icons/favicon-32.png') }}">
+<link rel="apple-touch-icon" href="{{ asset('icons/icon-192x192.png') }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -324,6 +324,60 @@ img{max-width:100%;display:block}
 .p-mission .brand .txt b{color:#fff}
 .p-mission .brand .txt small{color:#f7d9d9}
 
+/* DB template : couverture réelle */
+.p-new-book .cover{position:relative;overflow:hidden}
+.p-new-book .cover .np-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
+.p-new-book .cover.filled{border-style:solid;border-color:var(--border)}
+.p-new-book .cover.filled .np-ph{display:none}
+.book-picker{
+  font-family:var(--sans);font-weight:600;font-size:.8rem;color:var(--ink);
+  border:1px solid var(--border);border-radius:8px;padding:.4rem .6rem;background:#fff;max-width:220px;cursor:pointer;
+}
+.book-picker:focus{outline:2px solid var(--cardinal);outline-offset:1px}
+
+/* ===== POST : RAPPEL NEWSLETTER ===== */
+.p-remind{background:linear-gradient(155deg,#a01818 0%,var(--cardinal-deep) 100%);color:#fff;padding:2.5em;display:flex;flex-direction:column;justify-content:space-between}
+.p-remind .bell{width:3.8em;height:3.8em;border-radius:1.1em;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center}
+.p-remind .bell svg{width:2.1em;height:2.1em;stroke:#fff;fill:none;stroke-width:1.8}
+.p-remind h2{font-family:var(--serif);font-weight:800;font-size:2.2em;line-height:1.1;margin-top:.5em}
+.p-remind h2 em{font-style:normal;color:#f7d9d9;text-decoration:underline;text-decoration-color:rgba(255,255,255,.4);text-underline-offset:.12em}
+.p-remind p{color:#fbe6e6;font-weight:500;font-size:.92em;margin-top:.55em;max-width:15em}
+.p-remind .cta{align-self:flex-start;background:#fff;color:var(--cardinal);font-weight:800;padding:.65em 1.3em;border-radius:.6em;font-size:.9em;margin-top:1em}
+.p-remind .brand{margin-top:1.2em}
+.p-remind .brand .mark{background:#fff;padding:.16em}
+.p-remind .brand .txt b{color:#fff}
+.p-remind .brand .txt small{color:#f7d9d9}
+
+/* ===== POST : MERCI / COMMUNAUTÉ ===== */
+.p-thanks{background:var(--cream);padding:2.6em;display:flex;flex-direction:column;justify-content:space-between;text-align:center;align-items:center}
+.p-thanks .heart{width:3.6em;height:3.6em;border-radius:50%;background:var(--cardinal);display:flex;align-items:center;justify-content:center;box-shadow:0 .4em 1.2em rgba(185,28,28,.3)}
+.p-thanks .heart svg{width:1.9em;height:1.9em;stroke:#fff;fill:none;stroke-width:1.8}
+.p-thanks h2{font-family:var(--serif);font-weight:800;font-size:2.4em;line-height:1.08}
+.p-thanks h2 em{font-style:normal;color:var(--cardinal)}
+.p-thanks p{color:var(--ink-2);font-weight:500;font-size:.92em;max-width:15em}
+
+/* ===== POST : LE SAVIEZ-VOUS ===== */
+.p-fact{background:var(--anthracite);color:#f1eee7;padding:2.5em;display:flex;flex-direction:column;justify-content:space-between}
+.p-fact .kick{color:var(--gold);font-weight:800;letter-spacing:.24em;text-transform:uppercase;font-size:.7em}
+.p-fact h2{font-family:var(--serif);font-weight:800;font-size:2.05em;line-height:1.14;margin-top:.6em}
+.p-fact h2 em{font-style:italic;color:var(--gold)}
+.p-fact p{color:#cbc6bc;font-weight:500;font-size:.9em;margin-top:.7em;max-width:16em}
+.p-fact .brand .txt b{color:#fff}
+.p-fact .brand .txt small{color:var(--gold)}
+
+/* ===== POST : ÉVÉNEMENT (template) ===== */
+.p-event{background:linear-gradient(160deg,#fdfbf8,#efe6da);padding:2.4em;display:flex;flex-direction:column}
+.p-event .rib{align-self:flex-start;background:var(--anthracite);color:#fff;font-weight:800;letter-spacing:.16em;text-transform:uppercase;font-size:.66em;padding:.4em .9em;border-radius:.4em}
+.p-event .date{display:flex;align-items:center;gap:.7em;margin-top:1.1em}
+.p-event .date .d{font-family:var(--serif);font-weight:800;color:var(--cardinal);font-size:2.4em;line-height:1}
+.p-event .date .dd{display:flex;flex-direction:column;line-height:1.15}
+.p-event .date .dd b{font-weight:800;font-size:.9em}
+.p-event .date .dd span{color:var(--ink-2);font-weight:600;font-size:.78em}
+.p-event h2{font-family:var(--serif);font-weight:800;font-size:1.7em;line-height:1.1;margin-top:.8em}
+.p-event .loc{display:flex;align-items:center;gap:.5em;color:var(--ink-2);font-weight:600;font-size:.82em;margin-top:.6em}
+.p-event .loc svg{width:1.2em;height:1.2em;stroke:var(--cardinal);fill:none;stroke-width:1.8;flex:none}
+.p-event .foot{margin-top:auto;padding-top:1.2em;display:flex;align-items:center;justify-content:space-between;border-top:2px solid var(--cardinal)}
+
 /* toast */
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(140%);background:#1a1a1a;color:#fff;padding:.8rem 1.3rem;border-radius:10px;font-weight:700;font-size:.9rem;box-shadow:0 10px 30px rgba(0,0,0,.3);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);z-index:100;border-left:4px solid var(--cardinal)}
 #toast.show{transform:translateX(-50%) translateY(0)}
@@ -363,7 +417,7 @@ img{max-width:100%;display:block}
         <div class="post square p-launch" id="post-launch">
           <svg class="arch-bg" viewBox="0 0 100 100"><path d="M10 100 V45 A40 40 0 0 1 90 45 V100 H70 V45 A20 20 0 0 0 30 45 V100 Z" fill="#b91c1c"/></svg>
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
           <div>
@@ -392,7 +446,7 @@ img{max-width:100%;display:block}
           <h2><em>Transandans</em><br>& tout notre<br>patrimoine.</h2>
           <p>Retrouvez nos publications sur l'art et la foi chrétienne en Martinique, en lecture numérique sécurisée.</p>
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
         </div>
@@ -412,7 +466,7 @@ img{max-width:100%;display:block}
           <cite>— Association APACC-M, Fort-de-France</cite>
           <div class="foot">
             <div class="brand" style="font-size:.9em">
-              <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
               <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
             </div>
             <span class="url-pill" style="color:var(--muted)">ebooks.apacc-martinique.fr</span>
@@ -420,6 +474,25 @@ img{max-width:100%;display:block}
         </div>
       </div></div>
       <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-quote','citation',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
+    </div>
+
+    <!-- POST 17 LE SAVIEZ-VOUS -->
+    <div class="card">
+      <div class="card-head">
+        <div class="meta"><span class="name">Le saviez-vous</span><span class="dim">Instagram · Carré · 1080×1080</span></div>
+      </div>
+      <div class="card-body"><div class="canvas-wrap">
+        <div class="post square p-fact" id="post-fact">
+          <div class="kick">Le saviez-vous ?</div>
+          <h2>La revue <em>Transandans</em> est la publication phare de l'APACC-M.</h2>
+          <p>Elle explore l'art sacré et la culture chrétienne de la Martinique — désormais accessible en version numérique.</p>
+          <div class="brand">
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
+            <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
+          </div>
+        </div>
+      </div></div>
+      <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-fact','le-saviez-vous',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
     </div>
 
   </div>
@@ -437,7 +510,7 @@ img{max-width:100%;display:block}
       <div class="card-body"><div class="canvas-wrap">
         <div class="post portrait p-pwa" id="post-pwa">
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
           <div class="hd">Installez l'appli sur votre <em>téléphone</em></div>
@@ -490,7 +563,7 @@ img{max-width:100%;display:block}
       <div class="card-body"><div class="canvas-wrap">
         <div class="post square p-steps" id="post-steps">
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
           <h2>Lire nos ouvrages,<br>en <em>3 étapes</em>.</h2>
@@ -536,7 +609,7 @@ img{max-width:100%;display:block}
         <div class="post story p-story" id="post-story">
           <div class="top">
             <div class="brand">
-              <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
               <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
             </div>
           </div>
@@ -565,10 +638,10 @@ img{max-width:100%;display:block}
           <div>
             <h2>Restez <em>informé·e</em><br>de nos parutions.</h2>
             <p>Inscrivez-vous à la lettre de l'APACC-M et soyez prévenu·e à chaque nouvel ouvrage.</p>
-            <div class="field"><span class="em">votre@email.com</span><span class="go">Je m'inscris →</span></div>
+            <div class="field"><span class="em">votre&#64;email.com</span><span class="go">Je m'inscris →</span></div>
           </div>
           <div class="brand" style="font-size:.9em">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
         </div>
@@ -587,12 +660,55 @@ img{max-width:100%;display:block}
           <h2>Transmettre un<br>patrimoine, ouvrir<br>les cœurs.</h2>
           <p>Promouvoir et diffuser l'art et la culture chrétienne de la Martinique, accessible à toutes et à tous.</p>
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
         </div>
       </div></div>
       <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-mission','mission',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
+    </div>
+
+    <!-- POST 15 RAPPEL NEWSLETTER -->
+    <div class="card">
+      <div class="card-head">
+        <div class="meta"><span class="name">Rappel newsletter</span><span class="dim">Instagram · Carré · 1080×1080</span></div>
+      </div>
+      <div class="card-body"><div class="canvas-wrap">
+        <div class="post square p-remind" id="post-remind">
+          <div class="bell"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg></div>
+          <div>
+            <h2>N'oubliez pas de<br>vous <em>abonner</em> à<br>notre newsletter&nbsp;!</h2>
+            <p>Nouvelles parutions, actualités et rendez-vous de l'APACC-M, directement dans votre boîte mail.</p>
+          </div>
+          <span class="cta">Je m'abonne sur le site</span>
+          <div class="brand">
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
+            <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
+          </div>
+        </div>
+      </div></div>
+      <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-remind','rappel-newsletter',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
+    </div>
+
+    <!-- POST 16 MERCI / COMMUNAUTÉ -->
+    <div class="card">
+      <div class="card-head">
+        <div class="meta"><span class="name">Merci</span><span class="dim">Instagram · Carré · 1080×1080</span></div>
+      </div>
+      <div class="card-body"><div class="canvas-wrap">
+        <div class="post square p-thanks" id="post-thanks">
+          <div class="heart"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 00-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 10-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 000-7.8z"/></svg></div>
+          <div>
+            <h2>Merci pour votre<br><em>soutien</em>.</h2>
+            <p>Chaque lecture fait vivre l'art et la culture chrétienne martiniquaise. Merci de faire partie de l'aventure.</p>
+          </div>
+          <div class="brand">
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
+            <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
+          </div>
+        </div>
+      </div></div>
+      <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-thanks','merci',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
     </div>
 
   </div>
@@ -610,7 +726,7 @@ img{max-width:100%;display:block}
       <div class="card-body"><div class="canvas-wrap">
         <div class="post square p-multi" id="post-multi">
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
           <h2>Vos livres, sur<br>tous vos <em>écrans</em>.</h2>
@@ -655,7 +771,7 @@ img{max-width:100%;display:block}
             <li><svg viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Paiement en ligne sécurisé</li>
           </ul>
           <div class="brand">
-            <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+            <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
             <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
           </div>
         </div>
@@ -680,7 +796,7 @@ img{max-width:100%;display:block}
           </div>
           <div class="foot">
             <div class="brand">
-              <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
               <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
             </div>
             <span class="url-pill" style="color:var(--muted)">ebooks.apacc-martinique.fr</span>
@@ -693,29 +809,33 @@ img{max-width:100%;display:block}
   </div>
 
   <!-- =================== TEMPLATES RÉUTILISABLES =================== -->
-  <h2 class="section-title">Template réutilisable</h2>
-  <p class="section-sub">Modèle « nouvelle parution » à dupliquer : glissez la couverture et changez le titre/prix pour chaque ouvrage.</p>
+  <h2 class="section-title">Templates réutilisables</h2>
+  <p class="section-sub">Le modèle « nouvelle parution » se remplit automatiquement : choisissez un ouvrage dans la liste (couverture, titre, auteur et prix issus de la base). Le modèle « événement » est à personnaliser à la main.</p>
   <div class="grid">
 
-    <!-- POST 12 NOUVELLE PARUTION -->
+    <!-- POST 12 NOUVELLE PARUTION (connecté à la base) -->
     <div class="card">
       <div class="card-head">
         <div class="meta"><span class="name">Nouvelle parution</span><span class="dim">Instagram · Portrait · 1080×1350</span></div>
+        <select class="book-picker" id="bookPicker" onchange="fillBook(this.value)" aria-label="Choisir un ouvrage"></select>
       </div>
       <div class="card-body"><div class="canvas-wrap">
         <div class="post portrait p-new-book" id="post-new-book">
-          <span class="rib">Nouvelle parution</span>
-          <div class="cover">
-            <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h9l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M15 3v5h5"/></svg>
-            <span>Couverture de l'ouvrage</span>
+          <span class="rib" id="np-rib">Nouvelle parution</span>
+          <div class="cover" id="np-cover-box">
+            <img class="np-cover-img" id="np-cover" alt="">
+            <div class="np-ph">
+              <svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h9l5 5v11a2 2 0 01-2 2H6a2 2 0 01-2-2z"/><path d="M15 3v5h5"/></svg>
+              <span>Couverture de l'ouvrage</span>
+            </div>
           </div>
-          <h2>Titre de l'ouvrage</h2>
-          <div class="auth">par Nom de l'auteur</div>
-          <div class="price">00,00 €</div>
+          <h2 id="np-title">Titre de l'ouvrage</h2>
+          <div class="auth" id="np-auth">par Nom de l'auteur</div>
+          <div class="price" id="np-price">00,00 €</div>
           <span class="cta">Disponible maintenant</span>
           <div class="foot">
             <div class="brand" style="font-size:.9em">
-              <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
               <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
             </div>
             <span class="url-pill" style="color:var(--cardinal)">ebooks.apacc-martinique.fr</span>
@@ -723,6 +843,32 @@ img{max-width:100%;display:block}
         </div>
       </div></div>
       <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-new-book','template-nouvelle-parution',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
+    </div>
+
+    <!-- POST 14 ÉVÉNEMENT (template) -->
+    <div class="card">
+      <div class="card-head">
+        <div class="meta"><span class="name">Événement</span><span class="dim">Instagram · Carré · 1080×1080</span></div>
+      </div>
+      <div class="card-body"><div class="canvas-wrap">
+        <div class="post square p-event" id="post-event">
+          <span class="rib">Événement à venir</span>
+          <div class="date">
+            <span class="d">00</span>
+            <span class="dd"><b>Mois 2026</b><span>00h00</span></span>
+          </div>
+          <h2>Intitulé de<br>l'événement</h2>
+          <div class="loc"><svg viewBox="0 0 24 24"><path d="M12 21s-7-5.7-7-11a7 7 0 0114 0c0 5.3-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Lieu · Fort-de-France</div>
+          <div class="foot">
+            <div class="brand" style="font-size:.9em">
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
+              <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
+            </div>
+            <span class="url-pill" style="color:var(--cardinal)">ebooks.apacc-martinique.fr</span>
+          </div>
+        </div>
+      </div></div>
+      <div class="card-foot"><button class="btn btn-primary" onclick="exportPost('post-event','template-evenement',1080)"><svg class="bic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>Export PNG</button></div>
     </div>
 
   </div>
@@ -746,7 +892,7 @@ img{max-width:100%;display:block}
           </div>
           <div class="r">
             <div class="brand" style="font-size:1.2em">
-              <span class="mark"><img src="icons/icon-512x512.png" alt="APACC-M"></span>
+              <span class="mark"><img src="{{ asset('icons/icon-512x512.png') }}" alt="APACC-M"></span>
               <span class="txt"><b>APACC-M</b><small>e-Livre</small></span>
             </div>
             <span class="cta">ebooks.apacc-martinique.fr</span>
@@ -763,6 +909,9 @@ img{max-width:100%;display:block}
 <div id="toast">Image téléchargée</div>
 
 <script>
+/* Ouvrages issus de la base de données */
+const EBOOKS = @json($ebooks);
+
 function toast(msg){
   const t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
@@ -771,6 +920,48 @@ function toast(msg){
 function toggleTheme(){
   const h=document.documentElement;
   h.dataset.theme = h.dataset.theme==='dark' ? 'light' : 'dark';
+}
+
+/* ---- Template « nouvelle parution » alimenté par la base ---- */
+function initBookPicker(){
+  const sel=document.getElementById('bookPicker');
+  if(!sel) return;
+  if(!EBOOKS.length){
+    sel.innerHTML='<option value="-1">Aucun ouvrage publié</option>';
+    sel.disabled=true;
+    return;
+  }
+  sel.innerHTML='<option value="-1">— Choisir un ouvrage —</option>'+
+    EBOOKS.map((b,i)=>'<option value="'+i+'">'+b.title.replace(/</g,'&lt;')+'</option>').join('');
+  fillBook(0);
+  sel.value='0';
+}
+function fillBook(i){
+  i=parseInt(i,10);
+  const box=document.getElementById('np-cover-box');
+  const img=document.getElementById('np-cover');
+  const title=document.getElementById('np-title');
+  const auth=document.getElementById('np-auth');
+  const price=document.getElementById('np-price');
+  if(isNaN(i)||i<0||!EBOOKS[i]){
+    box.classList.remove('filled');img.style.display='none';img.removeAttribute('src');
+    title.textContent='Titre de l\'ouvrage';
+    auth.textContent='par Nom de l\'auteur';
+    price.textContent='00,00 €';
+    return;
+  }
+  const b=EBOOKS[i];
+  title.textContent=b.title;
+  auth.textContent='par '+b.author;
+  price.textContent=b.price;
+  if(b.cover){
+    img.crossOrigin='anonymous';
+    img.src=b.cover;
+    img.style.display='block';
+    box.classList.add('filled');
+  }else{
+    box.classList.remove('filled');img.style.display='none';img.removeAttribute('src');
+  }
 }
 
 async function exportPost(id, filename, targetW){
@@ -816,17 +1007,21 @@ async function exportPost(id, filename, targetW){
 async function exportAll(){
   const jobs=[
     ['post-launch','lancement',1080],
-    ['post-pwa','installer-app-pwa',1080],
-    ['post-revue','revue-transandans',1080],
-    ['post-steps','comment-ca-marche',1080],
-    ['post-story','story-teaser',1080],
     ['post-quote','citation',1080],
+    ['post-fact','le-saviez-vous',1080],
+    ['post-pwa','installer-app-pwa',1080],
+    ['post-steps','comment-ca-marche',1080],
+    ['post-revue','revue-transandans',1080],
+    ['post-story','story-teaser',1080],
     ['post-news','newsletter',1080],
     ['post-mission','mission',1080],
+    ['post-remind','rappel-newsletter',1080],
+    ['post-thanks','merci',1080],
     ['post-multi','multi-support',1080],
     ['post-secure','lecture-securisee',1080],
     ['post-assoc','qui-sommes-nous',1080],
     ['post-new-book','template-nouvelle-parution',1080],
+    ['post-event','template-evenement',1080],
     ['post-wide','banniere-web',1200]
   ];
   toast('Export de '+jobs.length+' visuels…');
@@ -836,6 +1031,8 @@ async function exportAll(){
   }
   toast('Tous les visuels sont téléchargés');
 }
+
+document.addEventListener('DOMContentLoaded', initBookPicker);
 </script>
 </body>
 </html>

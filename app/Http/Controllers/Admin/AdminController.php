@@ -50,6 +50,25 @@ class AdminController extends Controller
         ));
     }
 
+    public function kitCommunication()
+    {
+        $ebooks = Ebook::with('author')
+            ->where('status', 'published')
+            ->orderByDesc('published_date')
+            ->orderByDesc('id')
+            ->get()
+            ->map(fn (Ebook $e) => [
+                'title'  => $e->title,
+                'author' => $e->author?->name ?? 'APACC-M',
+                'price'  => $e->is_free ? 'Gratuit' : number_format((float) $e->price, 2, ',', ' ') . ' €',
+                'cover'  => $e->cover_image ? asset('storage/' . $e->cover_image) : null,
+                'url'    => route('ebooks.show', $e),
+            ])
+            ->values();
+
+        return view('admin.kit-communication', compact('ebooks'));
+    }
+
     public function saveSettings(Request $request)
     {
         $data = $request->only([
