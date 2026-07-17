@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>APACC-M e-Livre — Collecte des informations de paiement</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cardinal:#b91c1c; --cardinal-hover:#991b1b; --cream:#f6f3ef; --white:#fff;
+    --anthracite:#2d3139; --text:#1a1a1a; --text-2:#555; --muted:#888; --border:#e5e7eb;
+    --serif:'Cinzel',Georgia,serif; --sans:'Plus Jakarta Sans','Segoe UI',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    font-family:var(--sans); color:var(--text); background:var(--cream);
+    margin:0; line-height:1.55; font-size:14px;
+  }
+  .page{max-width:820px; margin:0 auto; background:var(--white); padding:0 0 48px;
+        box-shadow:0 6px 24px rgba(0,0,0,.09)}
+
+  /* En-tête de marque */
+  header{background:var(--cardinal); color:#fff; padding:34px 44px 30px; position:relative}
+  header::after{content:""; position:absolute; left:0; right:0; bottom:0; height:6px;
+                background:linear-gradient(90deg,var(--cardinal-hover),#e0b23c 60%,var(--cardinal-hover))}
+  .brand{font-family:var(--serif); font-weight:700; font-size:26px; letter-spacing:.5px}
+  .brand span{font-family:var(--sans); font-weight:600; opacity:.85; font-size:14px;
+              display:inline-block; margin-left:6px; letter-spacing:1px; text-transform:uppercase}
+  header h1{font-family:var(--serif); font-weight:700; font-size:22px; margin:18px 0 4px}
+  header p{margin:0; opacity:.92; font-size:13px; max-width:560px}
+
+  main{padding:32px 44px}
+
+  .note{background:#fef3f2; border-left:4px solid var(--cardinal); padding:12px 16px;
+        border-radius:0 6px 6px 0; margin:0 0 26px; font-size:13px; color:#7a1c1c}
+  .note strong{color:var(--cardinal-hover)}
+
+  .site{font-size:14px; margin:0 0 22px}
+  .site b{font-family:var(--serif)}
+
+  .methods{display:flex; flex-wrap:wrap; gap:10px; margin:0 0 30px; padding:16px;
+           background:var(--cream); border-radius:8px}
+  .methods span{font-size:12.5px; font-weight:600; background:#fff; border:1px solid var(--border);
+                border-radius:20px; padding:6px 12px}
+  .methods span::before{content:"☐ "; color:var(--cardinal)}
+
+  h2{font-family:var(--serif); font-weight:700; font-size:17px; color:var(--anthracite);
+     border-bottom:2px solid var(--cardinal); padding-bottom:6px; margin:34px 0 6px;
+     display:flex; align-items:center; gap:8px}
+  h2 .num{background:var(--cardinal); color:#fff; font-family:var(--sans); font-size:12px;
+          font-weight:800; width:24px; height:24px; border-radius:50%; display:inline-flex;
+          align-items:center; justify-content:center; flex:0 0 auto}
+  .prereq{font-size:12.5px; color:var(--text-2); background:#faf8f5; border:1px dashed var(--border);
+          padding:8px 12px; border-radius:6px; margin:10px 0}
+  .prereq a{color:var(--cardinal); word-break:break-all}
+
+  table{width:100%; border-collapse:collapse; margin:12px 0 6px; font-size:12.5px}
+  th{background:var(--anthracite); color:#fff; text-align:left; font-weight:700;
+     padding:8px 10px; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px}
+  td{border:1px solid var(--border); padding:9px 10px; vertical-align:top}
+  tr:nth-child(even) td{background:#fbfaf8}
+  .fill{color:#bbb; letter-spacing:1px}
+  code{background:#f1eee9; padding:1px 5px; border-radius:4px; font-size:12px;
+       font-family:'Courier New',monospace; color:var(--cardinal-hover)}
+
+  .webhook{background:#f4f7f4; border:1px solid #d8e6d8; border-radius:6px; padding:10px 14px;
+           font-size:12.5px; margin:8px 0 0}
+  .webhook b{color:#166534}
+  .webhook .url{font-family:'Courier New',monospace; color:var(--text); word-break:break-all}
+
+  ul.check{list-style:none; padding:0; margin:12px 0}
+  ul.check li{padding:6px 0 6px 28px; position:relative; font-size:13px; border-bottom:1px solid var(--border)}
+  ul.check li::before{content:"☐"; position:absolute; left:2px; top:5px; color:var(--cardinal);
+                      font-size:16px}
+
+  .free{background:#eef6ee; border-radius:4px; padding:2px 7px; font-size:11px; font-weight:700;
+        color:#166534; margin-left:6px}
+
+  .freetext{border:1px solid var(--border); border-radius:6px; min-height:90px; margin-top:10px;
+            background:repeating-linear-gradient(transparent,transparent 27px,var(--border) 28px)}
+
+  footer{padding:24px 44px 0; color:var(--muted); font-size:11px; text-align:center; border-top:1px solid var(--border); margin-top:30px}
+
+  @media print{
+    body{background:#fff; font-size:12px}
+    .page{box-shadow:none; max-width:none; margin:0}
+    h2{break-after:avoid} table,.webhook,.prereq{break-inside:avoid}
+    section{break-inside:avoid}
+    @page{margin:14mm}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <div class="brand">APACC-M<span>e-Livre</span></div>
+    <h1>Éléments à réunir pour activer les paiements</h1>
+    <p>Document de collecte à remplir par les responsables de l'association — mise en service des moyens de paiement de la bibliothèque numérique.</p>
+  </header>
+
+  <main>
+    <div class="note">
+      ⚠️ <strong>Confidentiel.</strong> Ce document contient des clés secrètes et des coordonnées bancaires.
+      À transmettre uniquement par un canal sécurisé — jamais par SMS ni message public.
+    </div>
+
+    <p class="site">🌐 <b>Site en production :</b> <code>https://ebooks.apacc-martinique.fr/</code></p>
+
+    <p style="font-size:13px;margin:0 0 10px">La plateforme gère <b>6 moyens de paiement</b>. Vous n'êtes pas obligés de tous les activer — cochez ceux à proposer et ne remplissez que ceux-là :</p>
+    <div class="methods">
+      <span>HelloAsso</span><span>Stripe</span><span>PayPal</span><span>SumUp</span><span>Virement bancaire</span><span>Chèque</span>
+    </div>
+
+    <!-- 0 -->
+    <section>
+      <h2><span class="num">0</span> Informations générales de l'association</h2>
+      <p class="prereq">Éléments demandés lors de la création / vérification (KYC) de <b>chaque</b> compte marchand (Stripe, PayPal, SumUp, HelloAsso).</p>
+      <table>
+        <tr><th style="width:55%">Élément</th><th>Valeur à fournir</th></tr>
+        <tr><td>Dénomination exacte de l'association</td><td class="fill">________________________</td></tr>
+        <tr><td>Numéro RNA (récépissé préfecture, format <code>W0000000000</code>)</td><td class="fill">________________________</td></tr>
+        <tr><td>Numéro SIRET (si l'association en a un)</td><td class="fill">________________________</td></tr>
+        <tr><td>Adresse du siège social</td><td class="fill">________________________</td></tr>
+        <tr><td>Email de contact officiel (reçoit les notifications de paiement)</td><td class="fill">________________________</td></tr>
+        <tr><td>Téléphone de contact</td><td class="fill">________________________</td></tr>
+        <tr><td>Représentant légal : nom, prénom, date &amp; lieu de naissance</td><td class="fill">________________________</td></tr>
+        <tr><td>Pièce d'identité du représentant (scan recto/verso)</td><td>☐ fournie</td></tr>
+        <tr><td>RIB / IBAN de l'association (compte qui reçoit les fonds)</td><td class="fill">________________________</td></tr>
+        <tr><td>Statuts + PV désignant le représentant</td><td>☐ fournis</td></tr>
+      </table>
+    </section>
+
+    <!-- 1 -->
+    <section>
+      <h2><span class="num">1</span> HelloAsso <span class="free">0 % de commission — recommandé pour une asso</span></h2>
+      <p class="prereq">Prérequis : créer un compte association sur <a href="https://www.helloasso.com">helloasso.com</a> et y publier un formulaire de vente pour la boutique e-Livre.</p>
+      <table>
+        <tr><th style="width:38%">Élément</th><th style="width:32%">Où le trouver</th><th>Valeur</th></tr>
+        <tr><td>URL du formulaire HelloAsso</td><td>Page publique du formulaire</td><td class="fill">______________</td></tr>
+        <tr><td>Identifiant / « slug » de l'organisation</td><td>URL <code>helloasso.com/associations/&lt;slug&gt;</code></td><td class="fill">______________</td></tr>
+        <tr><td>Clé secrète du webhook (facultatif, conseillé)</td><td>Espace HelloAsso → Notifications / API</td><td class="fill">______________</td></tr>
+      </table>
+      <p class="webhook"><b>Webhook à déclarer :</b> <span class="url">https://ebooks.apacc-martinique.fr/webhook/helloasso</span></p>
+    </section>
+
+    <!-- 2 -->
+    <section>
+      <h2><span class="num">2</span> Stripe <span style="font-size:12px;font-weight:600;color:var(--text-2)">— carte bancaire, universel</span></h2>
+      <p class="prereq">Prérequis : compte <a href="https://dashboard.stripe.com">dashboard.stripe.com</a> activé en <b>mode Live</b> (identité de l'association vérifiée).</p>
+      <table>
+        <tr><th style="width:38%">Élément</th><th style="width:32%">Où le trouver</th><th>Valeur</th></tr>
+        <tr><td>Clé publiable (<code>pk_live_…</code>)</td><td>Développeurs → Clés API</td><td class="fill">______________</td></tr>
+        <tr><td>Clé secrète (<code>sk_live_…</code>)</td><td>Développeurs → Clés API</td><td class="fill">______________</td></tr>
+        <tr><td>Secret du webhook (<code>whsec_…</code>)</td><td>Développeurs → Webhooks</td><td class="fill">______________</td></tr>
+      </table>
+      <p class="webhook"><b>Webhook à créer :</b> <span class="url">https://ebooks.apacc-martinique.fr/webhook/stripe</span> — événement <code>checkout.session.completed</code></p>
+    </section>
+
+    <!-- 3 -->
+    <section>
+      <h2><span class="num">3</span> PayPal</h2>
+      <p class="prereq">Prérequis : compte <b>PayPal Business</b> (<a href="https://www.paypal.com">paypal.com</a>) + une application <b>Live</b> sur <a href="https://developer.paypal.com">developer.paypal.com</a>.</p>
+      <table>
+        <tr><th style="width:38%">Élément</th><th style="width:32%">Où le trouver</th><th>Valeur</th></tr>
+        <tr><td>Client ID (Live)</td><td>Apps &amp; Credentials → Live</td><td class="fill">______________</td></tr>
+        <tr><td>Client Secret (Live)</td><td>Idem</td><td class="fill">______________</td></tr>
+        <tr><td>Mode</td><td><code>live</code> en production</td><td>live</td></tr>
+        <tr><td>Webhook ID</td><td>Votre app → Webhooks</td><td class="fill">______________</td></tr>
+      </table>
+      <p class="webhook"><b>Webhook à créer :</b> <span class="url">https://ebooks.apacc-martinique.fr/webhook/paypal</span> — événement <code>PAYMENT.CAPTURE.COMPLETED</code></p>
+    </section>
+
+    <!-- 4 -->
+    <section>
+      <h2><span class="num">4</span> SumUp</h2>
+      <p class="prereq">Prérequis : compte marchand <a href="https://sumup.com">sumup.com</a> + clé API sur <a href="https://developer.sumup.com">developer.sumup.com</a>.</p>
+      <table>
+        <tr><th style="width:38%">Élément</th><th style="width:32%">Où le trouver</th><th>Valeur</th></tr>
+        <tr><td>Clé API (<code>sup_sk_…</code>)</td><td>developer.sumup.com → API keys</td><td class="fill">______________</td></tr>
+        <tr><td>Code marchand (Merchant Code)</td><td>Tableau de bord → Profil</td><td class="fill">______________</td></tr>
+        <tr><td>Secret du webhook (facultatif)</td><td>Configuration webhook SumUp</td><td class="fill">______________</td></tr>
+      </table>
+      <p class="webhook"><b>Webhook à déclarer :</b> <span class="url">https://ebooks.apacc-martinique.fr/webhook/sumup</span> — événement <code>checkout.status.changed</code></p>
+    </section>
+
+    <!-- 5 -->
+    <section>
+      <h2><span class="num">5</span> Virement bancaire <span style="font-size:12px;font-weight:600;color:var(--text-2)">— manuel, hors ligne</span></h2>
+      <p class="prereq">Aucun compte externe. Ces infos s'affichent au client ; l'accès est activé manuellement par un admin après réception du virement.</p>
+      <table>
+        <tr><th style="width:55%">Élément</th><th>Valeur</th></tr>
+        <tr><td>Titulaire du compte</td><td class="fill">________________________</td></tr>
+        <tr><td>IBAN</td><td class="fill">________________________</td></tr>
+        <tr><td>BIC / SWIFT</td><td class="fill">________________________</td></tr>
+      </table>
+    </section>
+
+    <!-- 6 -->
+    <section>
+      <h2><span class="num">6</span> Chèque <span style="font-size:12px;font-weight:600;color:var(--text-2)">— manuel, hors ligne</span></h2>
+      <table>
+        <tr><th style="width:55%">Élément</th><th>Valeur</th></tr>
+        <tr><td>Ordre du chèque (à qui libeller)</td><td class="fill">________________________</td></tr>
+        <tr><td>Adresse d'envoi du chèque</td><td class="fill">________________________</td></tr>
+      </table>
+    </section>
+
+    <!-- Checklist technique -->
+    <section>
+      <h2 style="border-bottom-color:var(--anthracite)">✅ Checklist technique <span style="font-size:12px;font-weight:600;color:var(--text-2)">— côté développeur</span></h2>
+      <ul class="check">
+        <li>Site en <b>HTTPS</b> (certificat SSL actif) — obligatoire pour tous les webhooks.</li>
+        <li>Fichier <code>storage/app/payment-settings.json</code> renseigné via l'admin (Paramètres → Paiement).</li>
+        <li>Chaque webhook <b>déclaré et testé</b> dans le tableau de bord du prestataire.</li>
+        <li>Réaliser un <b>achat test réel</b> (petit montant) sur chaque méthode activée.</li>
+        <li>Vérifier l'<b>email de confirmation</b> et l'<b>activation automatique de l'accès</b>.</li>
+        <li>Mentions légales, CGV et politique de confidentialité publiées.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2 style="border-bottom-color:var(--border)">📝 Notes / questions des responsables</h2>
+      <div class="freetext"></div>
+    </section>
+  </main>
+
+  <footer>
+    APACC-M e-Livre · Bibliothèque numérique du patrimoine culturel et religieux martiniquais · apacc-martinique.fr
+  </footer>
+</div>
+</body>
+</html>

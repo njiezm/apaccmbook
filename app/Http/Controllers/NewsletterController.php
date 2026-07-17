@@ -34,7 +34,7 @@ class NewsletterController extends Controller
             if (!$subscriber->confirmation_token) {
                 $subscriber->update(['confirmation_token' => Str::random(40)]);
             }
-            Mail::to($subscriber->email)->queue(new NewsletterConfirmMail($subscriber->email, $subscriber->confirmation_token));
+            Mail::to($subscriber->email)->send(new NewsletterConfirmMail($subscriber->email, $subscriber->confirmation_token));
             $message = 'Un email de confirmation vous a été envoyé. Cliquez sur le lien qu\'il contient pour valider votre inscription.';
         } else {
             $message = 'Vous êtes déjà inscrit(e) à notre newsletter.';
@@ -55,7 +55,7 @@ class NewsletterController extends Controller
         }
 
         $subscriber->update(['is_active' => true, 'confirmation_token' => null]);
-        Mail::to($subscriber->email)->queue(new NewsletterWelcomeMail($subscriber->email));
+        Mail::to($subscriber->email)->send(new NewsletterWelcomeMail($subscriber->email));
 
         return redirect()->route('home')->with('status', 'Votre inscription à la newsletter est confirmée. Merci ! 🎉');
     }

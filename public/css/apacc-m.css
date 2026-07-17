@@ -956,8 +956,18 @@ body.drawer-open { overflow: hidden; }
     font-size: 5rem;
 }
 
-.product-info { display: flex; flex-direction: column; gap: 1.25rem; }
-.product-info h1 { font-size: 2rem; margin-bottom: 0; }
+.product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    /* Enfant de grille : autoriser le rétrécissement sous la largeur du contenu,
+       sinon un mot/URL long élargit la page et provoque un scroll horizontal. */
+    min-width: 0;
+}
+.product-info h1 { font-size: 2rem; margin-bottom: 0; overflow-wrap: break-word; }
+/* Les mots/URLs trop longs se coupent au lieu de déborder la largeur de l'écran. */
+.product-info p,
+.product-info div { overflow-wrap: break-word; word-break: break-word; }
 
 .product-meta {
     display: flex;
@@ -1598,6 +1608,67 @@ body.drawer-open { overflow: hidden; }
     border-color: var(--cardinal);
     background: var(--white);
     box-shadow: 0 0 0 3px rgba(185,28,28,0.08);
+}
+
+/* Indice d'aide sous un champ */
+.admin-hint {
+    font-size: 0.72rem;
+    line-height: 1.4;
+    color: var(--text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+}
+.admin-field label .req { color: var(--cardinal); }
+
+/* === Formulaire coupon === */
+.coupon-form { padding: 1.5rem; }
+.coupon-form .admin-field { margin-bottom: 0; }
+.coupon-form-row-3 { grid-template-columns: 1.2fr 1fr 1fr; }
+
+.coupon-form-legend {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--cardinal);
+    margin: 0 0 0.85rem;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border-light);
+}
+.coupon-form .admin-form-row + .coupon-form-legend { margin-top: 1.5rem; }
+
+.coupon-code-input {
+    font-family: var(--font-mono, monospace);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+/* Champ valeur avec suffixe %/€ */
+.coupon-value-group { position: relative; display: flex; align-items: center; }
+.coupon-value-group input { width: 100%; padding-right: 2.4rem; }
+.coupon-value-suffix {
+    position: absolute;
+    right: 0.9rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    pointer-events: none;
+    font-size: 0.95rem;
+}
+
+.coupon-form-actions {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .coupon-form-row-3 { grid-template-columns: 1fr; }
+    .coupon-form-actions { justify-content: stretch; }
+    .coupon-form-actions .btn-primary { width: 100%; text-align: center; justify-content: center; }
 }
 
 /* Conserver la compatibilité avec admin-card existant */
