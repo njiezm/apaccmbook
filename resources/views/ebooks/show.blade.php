@@ -3,23 +3,33 @@
 @section('title', $ebook->title . ' — APACC-M')
 
 @php
-    $hasCover = (bool) $ebook->cover_image;
-    $ogImage = $hasCover
-        ? asset('storage/' . $ebook->cover_image)
-        : asset('icons/icon.svg');
+    use App\Support\OgImage;
+    use Illuminate\Support\Facades\Storage;
 
-    // Dimensions et type réels de la couverture (aide les plateformes à afficher l'aperçu)
-    $ogImageW = $ogImageH = null;
+    $hasCover = (bool) $ebook->cover_image;
+
+    // Carte de partage 1200×630 (ratio paysage exigé par WhatsApp/Facebook/Twitter).
+    // Générée à la volée si absente, pour les couvertures déjà en base.
+    $ogImage = asset('icons/icon-512x512.png');
+    $ogImageW = 512; $ogImageH = 512;
     $ogImageType = 'image/png';
+
     if ($hasCover) {
-        try {
-            $coverPath = \Illuminate\Support\Facades\Storage::disk('public')->path($ebook->cover_image);
-            if (is_file($coverPath) && ($size = @getimagesize($coverPath))) {
-                [$ogImageW, $ogImageH] = $size;
-                $ogImageType = $size['mime'] ?? $ogImageType;
-            }
-        } catch (\Throwable $e) {
-            // silencieux : on garde l'URL sans dimensions
+        $ogPath = OgImage::pathFor($ebook->cover_image);
+        if (!Storage::disk('public')->exists($ogPath)) {
+            OgImage::generate($ebook->cover_image);
+        }
+        if (Storage::disk('public')->exists($ogPath)) {
+            // Cache-bust sur updated_at : quand la couverture change, l'URL change,
+            // ce qui force WhatsApp/Facebook à re-télécharger l'aperçu (fini le cache figé).
+            $ogImage = asset('storage/' . $ogPath) . '?v=' . $ebook->updated_at?->timestamp;
+            $ogImageW = OgImage::W; $ogImageH = OgImage::H;
+            $ogImageType = 'image/jpeg';
+        } else {
+            // Repli : couverture brute (mieux que rien si GD indisponible).
+            $ogImage = asset('storage/' . $ebook->cover_image) . '?v=' . $ebook->updated_at?->timestamp;
+            $ogImageW = $ogImageH = null;
+            $ogImageType = 'image/jpeg';
         }
     }
 
@@ -142,22 +152,54 @@
 
             {{-- Partage social --}}
             @php
-                $shareUrl = urlencode(route('ebooks.show', $ebook));
-                $shareText = urlencode($ebook->title . ' — APACC-M e-Livre');
+                $shareUrl     = route('ebooks.show', $ebook);
+                $shareAuthor  = $ebook->author?->name ? ' — ' . $ebook->author->name : '';
+                $shareTeaser  = \Illuminate\Support\Str::limit(
+                    trim(preg_replace('/\s+/', ' ', strip_tags($ebook->description ?? ''))), 140
+                );
+
+                // Message soigné (WhatsApp affiche *…* en gras). Le lien seul en dernière
+                // ligne déclenche l'aperçu (carte Open Graph) dans WhatsApp/Messenger.
+                $shareMsg = "📖 *{$ebook->title}*{$shareAuthor}";
+                if ($shareTeaser) {
+                    $shareMsg .= "\n\n« {$shareTeaser} »";
+                }
+                $shareMsg .= "\n\n📚 À découvrir sur la bibliothèque numérique de l'APACC-M :";
+
+                $waHref      = 'https://wa.me/?text=' . rawurlencode($shareMsg . "\n" . $shareUrl);
+                $fbHref      = 'https://www.facebook.com/sharer/sharer.php?u=' . rawurlencode($shareUrl);
+                $mailHref    = 'mailto:?subject=' . rawurlencode($ebook->title . ' — APACC-M e-Livre')
+                             . '&body=' . rawurlencode($shareMsg . "\n\n" . $shareUrl);
+
+                // Données pour le partage natif mobile (navigator.share)
+                $nativeShare = [
+                    'title' => $ebook->title . ' — APACC-M e-Livre',
+                    'text'  => $shareMsg,
+                    'url'   => $shareUrl,
+                ];
             @endphp
-            <div style="display:flex;align-items:center;gap:0.5rem;margin:0.25rem 0 0.5rem;" x-data="{ copied:false }">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin:0.25rem 0 0.5rem;flex-wrap:wrap;"
+                 x-data="{ copied:false, canShare: !!(navigator.share) }">
                 <span style="font-size:0.8rem;color:var(--text-muted);">Partager :</span>
-                <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener" title="WhatsApp" style="width:32px;height:32px;border-radius:50%;background:#25D366;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+
+                {{-- Partage natif (mobile) : ouvre WhatsApp/Instagram/SMS… au choix --}}
+                <button type="button" x-cloak x-show="canShare" title="Partager"
+                        @click='navigator.share(@json($nativeShare)).catch(()=>{})'
+                        style="width:32px;height:32px;border-radius:50%;background:var(--cardinal);color:#fff;border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </button>
+
+                <a href="{{ $waHref }}" target="_blank" rel="noopener" title="WhatsApp" style="width:32px;height:32px;border-radius:50%;background:#25D366;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
                     <i class="fa-brands fa-whatsapp"></i>
                 </a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener" title="Facebook" style="width:32px;height:32px;border-radius:50%;background:#1877F2;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                <a href="{{ $fbHref }}" target="_blank" rel="noopener" title="Facebook" style="width:32px;height:32px;border-radius:50%;background:#1877F2;color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
                     <i class="fa-brands fa-facebook-f"></i>
                 </a>
-                <a href="mailto:?subject={{ $shareText }}&body={{ $shareUrl }}" title="Email" style="width:32px;height:32px;border-radius:50%;background:var(--text-secondary);color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
+                <a href="{{ $mailHref }}" title="Email" style="width:32px;height:32px;border-radius:50%;background:var(--text-secondary);color:#fff;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;">
                     <i class="fa-solid fa-envelope"></i>
                 </a>
                 <button type="button" title="Copier le lien"
-                        @click="navigator.clipboard.writeText('{{ route('ebooks.show', $ebook) }}').then(()=>{copied=true;setTimeout(()=>copied=false,1800)})"
+                        @click="navigator.clipboard.writeText('{{ $shareUrl }}').then(()=>{copied=true;setTimeout(()=>copied=false,1800)})"
                         style="width:32px;height:32px;border-radius:50%;background:var(--border-medium);color:var(--text-primary);border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;">
                     <i class="fa-solid fa-link"></i>
                 </button>

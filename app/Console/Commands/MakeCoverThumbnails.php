@@ -4,13 +4,15 @@ namespace App\Console\Commands;
 
 use App\Models\Ebook;
 use App\Support\CoverThumbnail;
+use App\Support\OgImage;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Console\Command;
 
 class MakeCoverThumbnails extends Command
 {
-    protected $signature = 'covers:thumbs {--force : Régénère même si la miniature existe}';
+    protected $signature = 'covers:thumbs {--force : Régénère même si le fichier existe}';
 
-    protected $description = 'Génère les miniatures WebP des couvertures d\'ebooks existantes';
+    protected $description = 'Génère les miniatures WebP et les cartes de partage (Open Graph) des couvertures existantes';
 
     public function handle(): int
     {
@@ -20,12 +22,26 @@ class MakeCoverThumbnails extends Command
 
         foreach ($ebooks as $ebook) {
             $thumb = CoverThumbnail::pathFor($ebook->cover_image);
-            if (!$this->option('force') && \Illuminate\Support\Facades\Storage::disk('public')->exists($thumb)) {
+            $og = OgImage::pathFor($ebook->cover_image);
+            $disk = Storage::disk('public');
+
+            $needThumb = $this->option('force') || !$disk->exists($thumb);
+            $needOg = $this->option('force') || !$disk->exists($og);
+
+            if (!$needThumb && !$needOg) {
                 $skipped++;
                 continue;
             }
-            $result = CoverThumbnail::generate($ebook->cover_image);
-            if ($result) {
+
+            $ok = true;
+            if ($needThumb) {
+                $ok = (bool) CoverThumbnail::generate($ebook->cover_image) && $ok;
+            }
+            if ($needOg) {
+                $ok = (bool) OgImage::generate($ebook->cover_image) && $ok;
+            }
+
+            if ($ok) {
                 $done++;
                 $this->line("✓ {$ebook->title}");
             } else {
@@ -33,7 +49,7 @@ class MakeCoverThumbnails extends Command
             }
         }
 
-        $this->info("Terminé. {$done} miniature(s) générée(s), {$skipped} déjà présente(s).");
+        $this->info("Terminé. {$done} couverture(s) traitée(s), {$skipped} déjà à jour.");
         return self::SUCCESS;
     }
 }

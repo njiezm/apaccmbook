@@ -48,6 +48,7 @@ class EbookController extends Controller
         if ($request->hasFile('cover')) {
             $coverImage = $request->file('cover')->store('covers', 'public');
             \App\Support\CoverThumbnail::generate($coverImage);
+            \App\Support\OgImage::generate($coverImage);
         }
 
         $ebook = Ebook::create([
@@ -111,9 +112,11 @@ class EbookController extends Controller
             if ($ebook->cover_image) {
                 Storage::disk('public')->delete($ebook->cover_image);
                 \App\Support\CoverThumbnail::delete($ebook->cover_image);
+                \App\Support\OgImage::delete($ebook->cover_image);
             }
             $coverImage = $request->file('cover')->store('covers', 'public');
             \App\Support\CoverThumbnail::generate($coverImage);
+            \App\Support\OgImage::generate($coverImage);
         }
 
         $ebook->update([
@@ -137,6 +140,7 @@ class EbookController extends Controller
         if ($ebook->cover_image) {
             Storage::disk('public')->delete($ebook->cover_image);
             \App\Support\CoverThumbnail::delete($ebook->cover_image);
+            \App\Support\OgImage::delete($ebook->cover_image);
         }
         $ebook->delete();
 
