@@ -309,10 +309,12 @@ $value = context()->get($__contextArgs[0]); ?>' => 'https://schema.org',
                                 </form>
                             </div>
                         <?php else: ?>
-                            <form method="POST" action="<?php echo e(route('coupon.apply', $ebook)); ?>" style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+                            <form method="POST" action="<?php echo e(route('coupon.apply', $ebook)); ?>" class="coupon-apply-form">
                                 <?php echo csrf_field(); ?>
-                                <input type="text" name="code" placeholder="Code promo" style="flex:1;text-transform:uppercase;" maxlength="50">
-                                <button type="submit" class="btn-secondary" style="font-size:0.82rem;white-space:nowrap;">Appliquer</button>
+                                <input type="text" name="code" placeholder="Code promo" maxlength="50">
+                                <button type="submit" class="coupon-apply-btn" title="Appliquer le code" aria-label="Appliquer le code promo">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
                             </form>
                         <?php endif; ?>
                     <?php endif; ?>
@@ -477,27 +479,54 @@ $value = context()->get($__contextArgs[0]); ?>' => 'https://schema.org',
 
         
         <?php if(auth()->guard()->check()): ?>
-            <div style="background:var(--cream,#f8f7f4);border:1px solid var(--border-light);border-radius:var(--radius);padding:1.25rem;margin:1.25rem 0 2rem;max-width:640px;">
-                <p style="font-weight:700;margin:0 0 0.75rem;"><?php echo e($myReview ? 'Modifier mon avis' : 'Laisser un avis'); ?></p>
+            <div class="review-form-card" x-data="{ rating: <?php echo e((int) ($myReview->rating ?? 0)); ?>, hover: 0 }">
+                <div class="review-form-head">
+                    <span class="review-form-head__icon"><i class="fa-solid fa-pen-nib"></i></span>
+                    <div>
+                        <h3><?php echo e($myReview ? 'Modifier mon avis' : 'Donnez votre avis'); ?></h3>
+                        <p>Votre retour aide les autres lecteurs.</p>
+                    </div>
+                </div>
+
                 <form method="POST" action="<?php echo e(route('reviews.store', $ebook)); ?>">
                     <?php echo csrf_field(); ?>
-                    <div style="display:flex;flex-direction:column;gap:0.6rem;">
-                        <label style="font-size:0.85rem;">
-                            Note
-                            <select name="rating" required style="width:100%;margin-top:0.25rem;">
-                                <?php for($i = 5; $i >= 1; $i--): ?>
-                                    <option value="<?php echo e($i); ?>" <?php echo e($myReview && $myReview->rating == $i ? 'selected' : ''); ?>><?php echo e(str_repeat('★', $i)); ?> (<?php echo e($i); ?>/5)</option>
-                                <?php endfor; ?>
-                            </select>
-                        </label>
-                        <input type="text" name="title" maxlength="255" placeholder="Titre (optionnel)" value="<?php echo e($myReview->title ?? ''); ?>">
-                        <textarea name="content" rows="3" maxlength="2000" placeholder="Votre commentaire (optionnel)"><?php echo e($myReview->content ?? ''); ?></textarea>
-                        <div style="display:flex;gap:0.6rem;">
-                            <button type="submit" class="btn-primary" style="font-size:0.85rem;"><?php echo e($myReview ? 'Mettre à jour' : 'Publier mon avis'); ?></button>
-                            <?php if($myReview): ?>
-                                <button type="submit" form="delete-review" class="btn-secondary" style="font-size:0.85rem;">Supprimer</button>
-                            <?php endif; ?>
+
+                    
+                    <div class="review-field">
+                        <label>Votre note</label>
+                        <input type="hidden" name="rating" x-model="rating">
+                        <div class="review-stars" @mouseleave="hover = 0">
+                            <?php for($i = 1; $i <= 5; $i++): ?>
+                                <button type="button" class="review-star"
+                                        @click="rating = <?php echo e($i); ?>" @mouseenter="hover = <?php echo e($i); ?>"
+                                        :class="{ 'is-on': (hover || rating) >= <?php echo e($i); ?> }"
+                                        aria-label="<?php echo e($i); ?> étoile<?php echo e($i > 1 ? 's' : ''); ?>">★</button>
+                            <?php endfor; ?>
+                            <span class="review-stars__hint"
+                                  x-text="(hover || rating) ? ((hover || rating) + '/5') : 'Cliquez pour noter'"></span>
                         </div>
+                    </div>
+
+                    
+                    <div class="review-field">
+                        <label>Titre <span class="review-opt">(optionnel)</span></label>
+                        <input type="text" name="title" maxlength="255" placeholder="Ex. Une lecture passionnante" value="<?php echo e($myReview->title ?? ''); ?>">
+                    </div>
+
+                    
+                    <div class="review-field">
+                        <label>Commentaire <span class="review-opt">(optionnel)</span></label>
+                        <textarea name="content" rows="4" maxlength="2000" placeholder="Partagez ce que vous avez pensé de cet ouvrage…"><?php echo e($myReview->content ?? ''); ?></textarea>
+                    </div>
+
+                    <div class="review-form-actions">
+                        <button type="submit" class="btn-primary" :disabled="!rating" :style="!rating ? 'opacity:.5;cursor:not-allowed;' : ''">
+                            <i class="fa-solid fa-paper-plane" style="margin-right:0.4rem;"></i><?php echo e($myReview ? 'Mettre à jour' : 'Publier mon avis'); ?>
+
+                        </button>
+                        <?php if($myReview): ?>
+                            <button type="submit" form="delete-review" class="btn-ghost" style="color:var(--cardinal);border-color:var(--cardinal);">Supprimer</button>
+                        <?php endif; ?>
                     </div>
                 </form>
                 <?php if($myReview): ?>

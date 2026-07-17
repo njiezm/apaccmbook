@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Coupon;
 use App\Models\Ebook;
+use App\Models\Subscriber;
 use App\Models\User;
 use App\Models\Purchase;
 use Illuminate\Http\Request;
@@ -39,10 +40,13 @@ class AdminController extends Controller
         $categories = Category::orderBy('name')->get();
         $coupons  = Coupon::with('ebook')->latest()->get();
 
+        $subscribers = Subscriber::latest()->get();
+        $stats['total_subscribers'] = $subscribers->where('is_active', true)->count();
+
         $paymentSettings = $this->loadPaymentSettings();
 
         return view('admin.dashboard', compact(
-            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'categories', 'coupons', 'paymentSettings'
+            'stats', 'recentPurchases', 'ebooks', 'purchases', 'users', 'categories', 'coupons', 'subscribers', 'paymentSettings'
         ));
     }
 

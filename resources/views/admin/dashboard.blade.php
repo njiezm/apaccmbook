@@ -64,6 +64,12 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 Coupons
                 <span class="admin-sidebar-badge" style="background:var(--text-muted);">{{ $coupons->count() }}</span>
             </button>
+
+            <button class="admin-sidebar-item" :class="{ active: tab === 'subscribers' }" @click="tab = 'subscribers'">
+                <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                Abonnés
+                <span class="admin-sidebar-badge" style="background:var(--text-muted);">{{ $subscribers->count() }}</span>
+            </button>
         </nav>
 
         <div style="margin-top:auto;">
@@ -387,6 +393,75 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                                 </tr>
                             @empty
                                 <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucun coupon créé.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {{-- ══ ABONNÉS NEWSLETTER ══ --}}
+        <div x-show="tab === 'subscribers'" x-cloak>
+            @php
+                $activeSubs  = $subscribers->where('is_active', true);
+                $pendingSubs = $subscribers->where('is_active', false);
+            @endphp
+
+            <div class="admin-section-header">
+                <div>
+                    <h2>Abonnés à la newsletter</h2>
+                    <p>Les personnes ayant confirmé leur inscription reçoivent les notifications de publication.</p>
+                </div>
+                @if($subscribers->isNotEmpty())
+                    <a href="{{ route('admin.subscribers.export') }}" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.45rem;">
+                        <i class="fa-solid fa-file-csv"></i> Exporter (CSV)
+                    </a>
+                @endif
+            </div>
+
+            {{-- Petites stats --}}
+            <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1.5rem;">
+                <div class="admin-box" style="flex:1;min-width:150px;margin:0;padding:1rem 1.25rem;">
+                    <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);font-weight:700;">Confirmés</div>
+                    <div style="font-size:1.6rem;font-weight:800;color:var(--cardinal);">{{ $activeSubs->count() }}</div>
+                </div>
+                <div class="admin-box" style="flex:1;min-width:150px;margin:0;padding:1rem 1.25rem;">
+                    <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);font-weight:700;">En attente</div>
+                    <div style="font-size:1.6rem;font-weight:800;color:var(--text-secondary);">{{ $pendingSubs->count() }}</div>
+                </div>
+                <div class="admin-box" style="flex:1;min-width:150px;margin:0;padding:1rem 1.25rem;">
+                    <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--text-muted);font-weight:700;">Total</div>
+                    <div style="font-size:1.6rem;font-weight:800;color:var(--text-primary);">{{ $subscribers->count() }}</div>
+                </div>
+            </div>
+
+            <div class="admin-box">
+                <div class="admin-box-header">
+                    <h3><i class="fa-solid fa-envelope" style="color:var(--cardinal);margin-right:0.5rem;"></i>Liste des abonnés</h3>
+                    <span style="font-size:0.82rem;color:var(--text-muted);">{{ $subscribers->count() }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead><tr><th>Email</th><th>Statut</th><th>Inscrit le</th><th style="text-align:right;">Action</th></tr></thead>
+                        <tbody>
+                            @forelse($subscribers as $subscriber)
+                                <tr>
+                                    <td><strong>{{ $subscriber->email }}</strong></td>
+                                    <td>
+                                        <span class="status-pill {{ $subscriber->is_active ? 'paid' : 'pending' }}">
+                                            {{ $subscriber->is_active ? 'Confirmé' : 'En attente' }}
+                                        </span>
+                                    </td>
+                                    <td style="font-size:0.85rem;color:var(--text-secondary);">{{ optional($subscriber->created_at)->format('d/m/Y') }}</td>
+                                    <td style="text-align:right;">
+                                        <form method="POST" action="{{ route('admin.subscribers.destroy', $subscriber) }}" onsubmit="return confirm('Supprimer cet abonné ?')" style="margin:0;">
+                                            @csrf @method('DELETE')
+                                            <button class="btn-ghost btn-xs" type="submit" style="color:var(--cardinal);border-color:var(--cardinal);">Suppr.</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem;">Aucun abonné pour le moment.</td></tr>
                             @endforelse
                         </tbody>
                     </table>

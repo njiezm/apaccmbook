@@ -305,10 +305,12 @@
                                 </form>
                             </div>
                         @else
-                            <form method="POST" action="{{ route('coupon.apply', $ebook) }}" style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+                            <form method="POST" action="{{ route('coupon.apply', $ebook) }}" class="coupon-apply-form">
                                 @csrf
-                                <input type="text" name="code" placeholder="Code promo" style="flex:1;text-transform:uppercase;" maxlength="50">
-                                <button type="submit" class="btn-secondary" style="font-size:0.82rem;white-space:nowrap;">Appliquer</button>
+                                <input type="text" name="code" placeholder="Code promo" maxlength="50">
+                                <button type="submit" class="coupon-apply-btn" title="Appliquer le code" aria-label="Appliquer le code promo">
+                                    <i class="fa-solid fa-check"></i>
+                                </button>
                             </form>
                         @endif
                     @endif
@@ -472,27 +474,53 @@
 
         {{-- Formulaire d'avis (membre connecté) --}}
         @auth
-            <div style="background:var(--cream,#f8f7f4);border:1px solid var(--border-light);border-radius:var(--radius);padding:1.25rem;margin:1.25rem 0 2rem;max-width:640px;">
-                <p style="font-weight:700;margin:0 0 0.75rem;">{{ $myReview ? 'Modifier mon avis' : 'Laisser un avis' }}</p>
+            <div class="review-form-card" x-data="{ rating: {{ (int) ($myReview->rating ?? 0) }}, hover: 0 }">
+                <div class="review-form-head">
+                    <span class="review-form-head__icon"><i class="fa-solid fa-pen-nib"></i></span>
+                    <div>
+                        <h3>{{ $myReview ? 'Modifier mon avis' : 'Donnez votre avis' }}</h3>
+                        <p>Votre retour aide les autres lecteurs.</p>
+                    </div>
+                </div>
+
                 <form method="POST" action="{{ route('reviews.store', $ebook) }}">
                     @csrf
-                    <div style="display:flex;flex-direction:column;gap:0.6rem;">
-                        <label style="font-size:0.85rem;">
-                            Note
-                            <select name="rating" required style="width:100%;margin-top:0.25rem;">
-                                @for($i = 5; $i >= 1; $i--)
-                                    <option value="{{ $i }}" {{ $myReview && $myReview->rating == $i ? 'selected' : '' }}>{{ str_repeat('★', $i) }} ({{ $i }}/5)</option>
-                                @endfor
-                            </select>
-                        </label>
-                        <input type="text" name="title" maxlength="255" placeholder="Titre (optionnel)" value="{{ $myReview->title ?? '' }}">
-                        <textarea name="content" rows="3" maxlength="2000" placeholder="Votre commentaire (optionnel)">{{ $myReview->content ?? '' }}</textarea>
-                        <div style="display:flex;gap:0.6rem;">
-                            <button type="submit" class="btn-primary" style="font-size:0.85rem;">{{ $myReview ? 'Mettre à jour' : 'Publier mon avis' }}</button>
-                            @if($myReview)
-                                <button type="submit" form="delete-review" class="btn-secondary" style="font-size:0.85rem;">Supprimer</button>
-                            @endif
+
+                    {{-- Note : étoiles cliquables --}}
+                    <div class="review-field">
+                        <label>Votre note</label>
+                        <input type="hidden" name="rating" x-model="rating">
+                        <div class="review-stars" @mouseleave="hover = 0">
+                            @for($i = 1; $i <= 5; $i++)
+                                <button type="button" class="review-star"
+                                        @click="rating = {{ $i }}" @mouseenter="hover = {{ $i }}"
+                                        :class="{ 'is-on': (hover || rating) >= {{ $i }} }"
+                                        aria-label="{{ $i }} étoile{{ $i > 1 ? 's' : '' }}">★</button>
+                            @endfor
+                            <span class="review-stars__hint"
+                                  x-text="(hover || rating) ? ((hover || rating) + '/5') : 'Cliquez pour noter'"></span>
                         </div>
+                    </div>
+
+                    {{-- Titre --}}
+                    <div class="review-field">
+                        <label>Titre <span class="review-opt">(optionnel)</span></label>
+                        <input type="text" name="title" maxlength="255" placeholder="Ex. Une lecture passionnante" value="{{ $myReview->title ?? '' }}">
+                    </div>
+
+                    {{-- Commentaire --}}
+                    <div class="review-field">
+                        <label>Commentaire <span class="review-opt">(optionnel)</span></label>
+                        <textarea name="content" rows="4" maxlength="2000" placeholder="Partagez ce que vous avez pensé de cet ouvrage…">{{ $myReview->content ?? '' }}</textarea>
+                    </div>
+
+                    <div class="review-form-actions">
+                        <button type="submit" class="btn-primary" :disabled="!rating" :style="!rating ? 'opacity:.5;cursor:not-allowed;' : ''">
+                            <i class="fa-solid fa-paper-plane" style="margin-right:0.4rem;"></i>{{ $myReview ? 'Mettre à jour' : 'Publier mon avis' }}
+                        </button>
+                        @if($myReview)
+                            <button type="submit" form="delete-review" class="btn-ghost" style="color:var(--cardinal);border-color:var(--cardinal);">Supprimer</button>
+                        @endif
                     </div>
                 </form>
                 @if($myReview)

@@ -925,6 +925,217 @@ body.drawer-open { overflow: hidden; }
     font-family: var(--font-serif);
 }
 
+/* === Pagination catalogue (Bootstrap 5 restylé à la charte) === */
+.catalog-pagination {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+.catalog-pagination__count {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+.catalog-pagination__count strong { color: var(--text-primary); }
+
+.catalog-pagination .pagination {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.catalog-pagination .page-item .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: 0 0.6rem;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius);
+    background: var(--white);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.18s ease;
+}
+.catalog-pagination .page-item .page-link:hover {
+    border-color: var(--cardinal);
+    color: var(--cardinal);
+    background: var(--cream);
+}
+.catalog-pagination .page-item .page-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(185,28,28,0.12);
+}
+.catalog-pagination .page-item.active .page-link {
+    background: var(--cardinal);
+    border-color: var(--cardinal);
+    color: #fff;
+    cursor: default;
+}
+.catalog-pagination .page-item.disabled .page-link {
+    opacity: 0.45;
+    pointer-events: none;
+    background: var(--cream);
+}
+
+/* === Champ code promo (bloc achat) === */
+.coupon-apply-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.coupon-apply-form input[type="text"] {
+    flex: 1 1 0;
+    min-width: 0;
+    box-sizing: border-box;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius);
+    padding: 0.6rem 0.85rem;
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    background: var(--cream);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    transition: border-color var(--transition), background var(--transition), box-shadow 0.15s;
+}
+.coupon-apply-form input[type="text"]::placeholder {
+    text-transform: none;
+    letter-spacing: 0;
+}
+.coupon-apply-form input[type="text"]:focus {
+    outline: none;
+    border-color: var(--cardinal);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(185,28,28,0.08);
+}
+.coupon-apply-btn {
+    flex: 0 0 auto;
+    width: 44px;
+    align-self: stretch;
+    border: 1.5px solid var(--cardinal);
+    border-radius: var(--radius);
+    background: var(--cardinal);
+    color: #fff;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: background 0.15s, border-color 0.15s;
+}
+.coupon-apply-btn:hover { background: #a01818; border-color: #a01818; }
+.coupon-apply-btn:focus-visible { outline: 3px solid var(--cardinal); outline-offset: 2px; }
+
+/* === Formulaire d'avis === */
+.review-form-card {
+    background: var(--white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+    padding: 1.5rem;
+    margin: 1.25rem 0 2rem;
+    max-width: 640px;
+    border-top: 3px solid var(--cardinal);
+}
+.review-form-head {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin-bottom: 1.25rem;
+}
+.review-form-head__icon {
+    flex: 0 0 auto;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(185,28,28,0.08);
+    color: var(--cardinal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+.review-form-head h3 { margin: 0; font-size: 1.05rem; }
+.review-form-head p { margin: 0.1rem 0 0; font-size: 0.82rem; color: var(--text-muted); }
+
+.review-field { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 1rem; }
+.review-field > label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+.review-opt {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--text-muted);
+}
+.review-field input[type="text"],
+.review-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1.5px solid var(--border-medium);
+    border-radius: var(--radius);
+    padding: 0.65rem 0.9rem;
+    font-size: 0.9rem;
+    font-family: var(--font-sans);
+    background: var(--cream);
+    color: var(--text-primary);
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.review-field input[type="text"]:focus,
+.review-field textarea:focus {
+    outline: none;
+    border-color: var(--cardinal);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(185,28,28,0.08);
+}
+.review-field textarea { resize: vertical; min-height: 90px; line-height: 1.6; }
+
+/* Étoiles cliquables */
+.review-stars { display: flex; align-items: center; gap: 0.15rem; }
+.review-star {
+    background: none;
+    border: none;
+    padding: 0 0.05rem;
+    cursor: pointer;
+    font-size: 1.8rem;
+    line-height: 1;
+    color: var(--border-medium);
+    transition: color 0.12s, transform 0.12s;
+}
+.review-star:hover { transform: scale(1.12); }
+.review-star.is-on { color: #f5a623; }
+.review-stars__hint {
+    margin-left: 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.review-form-actions {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
 /* === Product Detail (show page) === */
 .product-detail-grid {
     display: grid;

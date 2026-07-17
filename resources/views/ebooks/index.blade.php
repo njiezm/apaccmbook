@@ -159,7 +159,12 @@
 
             {{-- Pagination --}}
             @if($ebooks->hasPages())
-                <div style="margin-top:2.5rem;">
+                <div class="catalog-pagination">
+                    <p class="catalog-pagination__count">
+                        Ouvrages <strong>{{ $ebooks->firstItem() }}–{{ $ebooks->lastItem() }}</strong>
+                        sur <strong>{{ $ebooks->total() }}</strong>
+                        · page {{ $ebooks->currentPage() }}/{{ $ebooks->lastPage() }}
+                    </p>
                     {{ $ebooks->withQueryString()->links() }}
                 </div>
             @endif
