@@ -76,8 +76,8 @@
 
                 <div class="filter-group">
                     <label style="display:flex;align-items:center;gap:0.55rem;cursor:pointer;font-weight:600;">
-                        <input type="checkbox" name="transandans" value="1" {{ request('transandans') ? 'checked' : '' }} style="width:auto;margin:0;">
-                        Revue <em style="font-style:italic;color:var(--cardinal);">Transandans</em> uniquement
+                        <input type="checkbox" name="transandans" value="1" {{ request('transandans') ? 'checked' : '' }} style="width:auto;margin:0;flex:none;">
+                        <span style="min-width:0;">Revue <em style="font-style:italic;color:var(--cardinal);">Transandans</em> uniquement</span>
                     </label>
                 </div>
 
