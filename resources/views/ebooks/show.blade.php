@@ -122,6 +122,14 @@
                 <span class="section-label">{{ $ebook->category->name }}</span>
             @endif
 
+            @if($ebook->is_transandans)
+                <a href="{{ route('ebooks.index', ['transandans' => 1]) }}"
+                   style="display:inline-flex;align-items:center;gap:0.4rem;margin:0.3rem 0;padding:0.25rem 0.7rem;border:1px solid var(--cardinal);border-radius:99px;color:var(--cardinal);font-size:0.76rem;font-weight:700;text-decoration:none;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Revue <em style="font-style:italic;">Transandans</em>
+                </a>
+            @endif
+
             <h1>{{ $ebook->title }}</h1>
 
             {{-- Note moyenne + liste d'envies --}}
@@ -234,11 +242,8 @@
             @endif
 
             {{-- Sommaire (aperçu) --}}
-            @php
-                $sommaireLines = collect(preg_split('/\r\n|\r|\n/', (string) $ebook->sommaire))
-                    ->map(fn ($l) => trim($l))->filter()->values();
-            @endphp
-            @if($sommaireLines->isNotEmpty())
+            @php $sommaireEntries = $ebook->sommaireEntries(); @endphp
+            @if($sommaireEntries->isNotEmpty())
                 <div x-data="{ open: false }" style="margin:1rem 0;">
                     <button type="button" @click="open = true" class="btn-secondary" style="display:inline-flex;align-items:center;gap:0.5rem;">
                         <i class="fa-solid fa-list-ul"></i> Voir le sommaire
@@ -252,11 +257,15 @@
                                 <button type="button" @click="open = false" style="background:none;border:none;font-size:1.5rem;line-height:1;cursor:pointer;color:var(--text-muted);">×</button>
                             </div>
                             <ul style="list-style:none;margin:0;padding:0.5rem 0;">
-                                @foreach($sommaireLines as $line)
-                                    @php preg_match('/^(.*?)[\s.\-–—]*(\d+)\s*$/u', $line, $m); @endphp
-                                    <li style="display:flex;justify-content:space-between;gap:1rem;padding:0.55rem 1.5rem;border-bottom:1px solid var(--border-light);font-size:0.92rem;">
-                                        <span>{{ $m[1] ?? $line }}</span>
-                                        @if(!empty($m[2]))<span style="color:var(--text-muted);flex-shrink:0;">p. {{ $m[2] }}</span>@endif
+                                @foreach($sommaireEntries as $entry)
+                                    <li style="display:flex;justify-content:space-between;gap:1rem;padding:0.65rem 1.5rem;border-bottom:1px solid var(--border-light);font-size:0.92rem;">
+                                        <span style="min-width:0;">
+                                            <span style="display:block;">{{ $entry['title'] }}</span>
+                                            @if($entry['subtitle'] !== '')
+                                                <span style="display:block;color:var(--text-muted);font-size:0.82rem;margin-top:0.1rem;">{{ $entry['subtitle'] }}</span>
+                                            @endif
+                                        </span>
+                                        @if(!empty($entry['page']))<span style="color:var(--text-muted);flex-shrink:0;">p. {{ $entry['page'] }}</span>@endif
                                     </li>
                                 @endforeach
                             </ul>
@@ -372,14 +381,99 @@
                             @endif
 
                             {{-- SumUp --}}
-                            @if(in_array('sumup', $methods))
-                                <form method="POST" action="{{ route('checkout.sumup', $ebook) }}">
-                                    @csrf
-                                    <button type="submit" style="width:100%;padding:0.6rem 1.25rem;border:2px solid #1a1a2e;border-radius:var(--radius);background:#1a1a2e;color:#fff;font-family:var(--font-sans);font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+                            @php $sumupApiReady = in_array('sumup', $methods) && ($paymentSettings['sumup_api_key'] ?? '') && ($paymentSettings['sumup_merchant_code'] ?? ''); @endphp
+                            @if($sumupApiReady)
+                                {{-- API SumUp configurée : formulaire carte bancaire intégré, accès auto --}}
+                                <div id="sumup-pay" data-init="{{ route('checkout.sumup.init', $ebook) }}" data-verify="{{ route('checkout.sumup.verify', $ebook) }}">
+                                    <button type="button" id="sumup-start" style="width:100%;padding:0.6rem 1.25rem;border:2px solid #1a1a2e;border-radius:var(--radius);background:#1a1a2e;color:#fff;font-family:var(--font-sans);font-size:0.875rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
                                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                                        Payer via SumUp
+                                        Payer par carte bancaire
                                     </button>
-                                </form>
+                                    <div id="sumup-card" style="margin-top:0.6rem;"></div>
+                                    <p id="sumup-status" role="status" style="display:none;font-size:0.8rem;color:var(--text-secondary);margin:0.5rem 0 0;text-align:center;"></p>
+                                </div>
+                                <script src="https://gateway.sumup.com/gateway/ecom/card/v2/sdk.js"></script>
+                                <script>
+                                (function () {
+                                    const wrap    = document.getElementById('sumup-pay');
+                                    const startBtn = document.getElementById('sumup-start');
+                                    const statusEl = document.getElementById('sumup-status');
+                                    if (!wrap || !startBtn) return;
+
+                                    const initUrl   = wrap.dataset.init;
+                                    const verifyUrl = wrap.dataset.verify;
+                                    const csrf      = document.querySelector('meta[name="csrf-token"]')?.content;
+                                    let mounted = false;
+
+                                    const setStatus = (msg) => {
+                                        statusEl.style.display = msg ? 'block' : 'none';
+                                        statusEl.textContent = msg || '';
+                                    };
+
+                                    const post = (url) => fetch(url, {
+                                        method: 'POST',
+                                        credentials: 'same-origin',
+                                        headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' },
+                                    }).then(r => r.json());
+
+                                    startBtn.addEventListener('click', async () => {
+                                        if (mounted) return;
+                                        startBtn.disabled = true;
+                                        setStatus('Préparation du paiement sécurisé…');
+                                        try {
+                                            const data = await post(initUrl);
+                                            if (data.already_paid) { window.location = data.redirect; return; }
+                                            if (!data.ok || !data.checkout_id) {
+                                                setStatus(data.error || 'SumUp indisponible pour le moment.');
+                                                startBtn.disabled = false;
+                                                return;
+                                            }
+                                            if (typeof SumUpCard === 'undefined') {
+                                                setStatus('Le module de paiement n\'a pas pu se charger.');
+                                                startBtn.disabled = false;
+                                                return;
+                                            }
+                                            mounted = true;
+                                            startBtn.style.display = 'none';
+                                            setStatus('');
+                                            SumUpCard.mount({
+                                                id: 'sumup-card',
+                                                checkoutId: data.checkout_id,
+                                                locale: 'fr-FR',
+                                                onResponse: async function (type, body) {
+                                                    if (type === 'success') {
+                                                        setStatus('Paiement accepté, ouverture de la lecture…');
+                                                        const v = await post(verifyUrl);
+                                                        if (v.ok && v.redirect) { window.location = v.redirect; }
+                                                        else { setStatus('Paiement reçu — vérification en cours, un instant…'); }
+                                                    } else if (type === 'error') {
+                                                        setStatus('Paiement refusé ou interrompu. Vous pouvez réessayer.');
+                                                    }
+                                                },
+                                            });
+                                        } catch (e) {
+                                            setStatus('Erreur réseau. Réessayez dans un instant.');
+                                            startBtn.disabled = false;
+                                        }
+                                    });
+                                })();
+                                </script>
+                            @elseif($ebook->sumup_url)
+                                {{-- Repli : lien de paiement carte SumUp propre à l'ouvrage --}}
+                                <a href="{{ $ebook->sumup_url }}" target="_blank" rel="noopener"
+                                   style="width:100%;padding:0.6rem 1.25rem;border:2px solid #1a1a2e;border-radius:var(--radius);background:#1a1a2e;color:#fff;font-family:var(--font-sans);font-size:0.875rem;font-weight:600;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;box-sizing:border-box;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                                    Payer par carte via SumUp
+                                </a>
+                                <div style="background:var(--cream,#f8f7f4);border:1px solid var(--border-light);border-radius:var(--radius);padding:0.7rem 0.85rem;">
+                                    <p style="font-size:0.79rem;color:var(--text-secondary);margin:0 0 0.45rem;">Après votre paiement par carte sur SumUp, confirmez ici :</p>
+                                    <form method="POST" action="{{ route('purchases.store') }}">
+                                        @csrf
+                                        <input type="hidden" name="ebook_id" value="{{ $ebook->id }}">
+                                        <input type="hidden" name="payment_method" value="sumup">
+                                        <button type="submit" class="btn-secondary" style="width:100%;font-size:0.82rem;">J'ai payé par carte (SumUp)</button>
+                                    </form>
+                                </div>
                             @endif
 
                             {{-- HelloAsso --}}

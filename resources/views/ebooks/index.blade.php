@@ -14,9 +14,9 @@
 </section>
 
 @php
-    $hasActiveFilters = request()->hasAny(['search','category_id','min_price','max_price'])
+    $hasActiveFilters = request()->hasAny(['search','category_id','min_price','max_price','transandans'])
         || (request('sort') && request('sort') !== 'latest');
-    $activeCount = collect(['search','category_id','min_price','max_price'])
+    $activeCount = collect(['search','category_id','min_price','max_price','transandans'])
         ->filter(fn($k) => request($k))->count()
         + ($hasActiveFilters && request('sort') && request('sort') !== 'latest' ? 1 : 0);
 @endphp
@@ -72,6 +72,13 @@
                         <span style="color:var(--text-muted);font-size:0.85rem;">—</span>
                         <input type="number" name="max_price" placeholder="Max" value="{{ request('max_price') }}" min="0" step="0.01" style="width:50%;">
                     </div>
+                </div>
+
+                <div class="filter-group">
+                    <label style="display:flex;align-items:center;gap:0.55rem;cursor:pointer;font-weight:600;">
+                        <input type="checkbox" name="transandans" value="1" {{ request('transandans') ? 'checked' : '' }} style="width:auto;margin:0;">
+                        Revue <em style="font-style:italic;color:var(--cardinal);">Transandans</em> uniquement
+                    </label>
                 </div>
 
                 <div class="filter-group">

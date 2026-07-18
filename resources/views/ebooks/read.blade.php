@@ -109,12 +109,7 @@
 
 @section('content')
 @php
-    $sommaireItems = collect(preg_split('/\r\n|\r|\n/', (string) $ebook->sommaire))
-        ->map(fn ($l) => trim($l))->filter()
-        ->map(function ($line) {
-            preg_match('/^(.*?)[\s.\-–—]*(\d+)\s*$/u', $line, $m);
-            return ['title' => $m[1] ?? $line, 'page' => $m[2] ?? null];
-        })->values();
+    $sommaireItems = $ebook->sommaireEntries();
 @endphp
 <section class="reader-shell">
 
@@ -198,11 +193,17 @@
                         @if($item['page'])
                             <button type="button" class="sommaire-jump" data-page="{{ $item['page'] }}"
                                     style="width:100%;text-align:left;background:none;border:none;border-bottom:1px solid #eee;padding:0.6rem 1.5rem;cursor:pointer;display:flex;justify-content:space-between;gap:1rem;font-size:0.92rem;color:#1a1a1a;">
-                                <span>{{ $item['title'] }}</span>
+                                <span style="min-width:0;">
+                                    <span style="display:block;">{{ $item['title'] }}</span>
+                                    @if(($item['subtitle'] ?? '') !== '')<span style="display:block;color:#888;font-size:0.82rem;margin-top:0.1rem;">{{ $item['subtitle'] }}</span>@endif
+                                </span>
                                 <span style="color:#b91c1c;flex-shrink:0;font-weight:600;">p. {{ $item['page'] }}</span>
                             </button>
                         @else
-                            <div style="padding:0.6rem 1.5rem;border-bottom:1px solid #eee;font-size:0.92rem;">{{ $item['title'] }}</div>
+                            <div style="padding:0.6rem 1.5rem;border-bottom:1px solid #eee;font-size:0.92rem;">
+                                <span style="display:block;">{{ $item['title'] }}</span>
+                                @if(($item['subtitle'] ?? '') !== '')<span style="display:block;color:#888;font-size:0.82rem;margin-top:0.1rem;">{{ $item['subtitle'] }}</span>@endif
+                            </div>
                         @endif
                     </li>
                 @endforeach

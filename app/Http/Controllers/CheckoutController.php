@@ -220,6 +220,87 @@ class CheckoutController extends Controller
         return redirect('https://checkout.sumup.com/pay/' . $r->json('id'));
     }
 
+    // ── SumUp — widget carte intégré (paiement dans la page) ──────────────────
+
+    /** Crée un checkout SumUp et renvoie son id pour le widget carte. */
+    public function sumupInit(Request $request, Ebook $ebook)
+    {
+        $settings = $this->paymentSettings();
+
+        if (!($settings['sumup_api_key'] ?? '') || !($settings['sumup_merchant_code'] ?? '')) {
+            return response()->json(['ok' => false, 'error' => 'SumUp n\'est pas configuré.'], 422);
+        }
+
+        $purchase = $this->resolvePurchase($request, $ebook, 'sumup');
+
+        if ($purchase->payment_status === Purchase::STATUS_PAID) {
+            return response()->json([
+                'ok'          => true,
+                'already_paid' => true,
+                'redirect'    => route('ebooks.read', $ebook),
+            ]);
+        }
+
+        $ref = 'APACC-' . $purchase->id . '-' . time();
+
+        $r = Http::withToken($settings['sumup_api_key'])
+            ->post('https://api.sumup.com/v0.1/checkouts', [
+                'checkout_reference' => $ref,
+                'amount'             => round($ebook->price, 2),
+                'currency'           => 'EUR',
+                'description'        => $ebook->title,
+                'merchant_code'      => $settings['sumup_merchant_code'],
+            ]);
+
+        if (!$r->successful() || !$r->json('id')) {
+            return response()->json([
+                'ok'    => false,
+                'error' => 'SumUp : ' . ($r->json('message') ?? 'création du paiement impossible.'),
+            ], 422);
+        }
+
+        // On mémorise l'id du checkout côté serveur : la vérification ne fera JAMAIS
+        // confiance à une valeur envoyée par le navigateur.
+        $purchase->update(['transaction_id' => $r->json('id')]);
+
+        return response()->json(['ok' => true, 'checkout_id' => $r->json('id')]);
+    }
+
+    /** Vérifie côté serveur que le checkout est PAYÉ, puis ouvre l'accès à la lecture. */
+    public function sumupVerify(Request $request, Ebook $ebook)
+    {
+        $purchase = $request->user()->purchases()
+            ->where('ebook_id', $ebook->id)
+            ->with('user', 'ebook')
+            ->first();
+
+        if (!$purchase) {
+            return response()->json(['ok' => false, 'error' => 'Achat introuvable.'], 404);
+        }
+
+        if ($purchase->payment_status === Purchase::STATUS_PAID) {
+            return response()->json(['ok' => true, 'redirect' => route('ebooks.read', $ebook)]);
+        }
+
+        $settings = $this->paymentSettings();
+        $checkoutId = $purchase->transaction_id; // valeur de confiance (posée à l'init)
+
+        if (!$checkoutId) {
+            return response()->json(['ok' => false, 'error' => 'Aucun paiement en cours.'], 422);
+        }
+
+        $r = Http::withToken($settings['sumup_api_key'] ?? '')
+            ->get('https://api.sumup.com/v0.1/checkouts/' . urlencode($checkoutId));
+
+        if ($r->successful() && $r->json('status') === 'PAID') {
+            $this->grantAccess($purchase);
+
+            return response()->json(['ok' => true, 'redirect' => route('ebooks.read', $ebook)]);
+        }
+
+        return response()->json(['ok' => false, 'status' => $r->json('status') ?? 'PENDING']);
+    }
+
     // ── Success / Cancel ──────────────────────────────────────────────────────
 
     public function success(Request $request, Ebook $ebook)

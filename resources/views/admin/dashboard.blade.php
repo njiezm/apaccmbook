@@ -150,8 +150,14 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             'is_free'       => (bool) $ebook->is_free,
                             'category_id'   => $ebook->category_id,
                             'helloasso_url' => $ebook->helloasso_url,
+                            'sumup_url'     => $ebook->sumup_url,
                             'description'   => $ebook->description,
-                            'sommaire'      => $ebook->sommaire,
+                            'is_transandans' => (bool) $ebook->is_transandans,
+                            'status'         => $ebook->status,
+                            'published_date' => $ebook->published_date?->format('Y-m-d'),
+                            'sommaire_items' => $ebook->sommaireEntries()
+                                ->map(fn ($i) => ['title' => $i['title'], 'subtitle' => $i['subtitle'], 'page' => $i['page'] ?? ''])
+                                ->values(),
                             'update_url'    => route('admin.ebooks.update', $ebook),
                         ], JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG);
                     @endphp
@@ -164,6 +170,14 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                             @endif
                         </div>
                         <div class="admin-ebook-body">
+                            @php
+                                $state = $ebook->publicationState();
+                                $stateColors = ['publié' => '#166534', 'brouillon' => '#92600a', 'programmé' => '#1e40af', 'archivé' => '#6b7280'];
+                                $stateBg     = ['publié' => '#dcfce7', 'brouillon' => '#fef3c7', 'programmé' => '#dbeafe', 'archivé' => '#f3f4f6'];
+                            @endphp
+                            <span style="display:inline-flex;align-items:center;gap:0.3rem;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.03em;padding:0.15rem 0.5rem;border-radius:99px;color:{{ $stateColors[$state] }};background:{{ $stateBg[$state] }};margin-bottom:0.35rem;">
+                                {{ $state }}@if($state === 'programmé') · {{ $ebook->published_date?->format('d/m/Y') }}@endif
+                            </span>
                             <p class="admin-ebook-title">{{ $ebook->title }}</p>
                             <p class="admin-ebook-desc">{{ Str::limit($ebook->description, 75) }}</p>
                             <div class="admin-ebook-footer">
@@ -269,10 +283,29 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                                         <strong style="font-size:0.9rem;">{{ $user->name }}</strong>
                                     </div>
                                 </td>
-                                <td style="font-size:0.85rem;color:var(--text-secondary);">{{ $user->email }}</td>
+                                <td style="font-size:0.85rem;color:var(--text-secondary);">
+                                    {{ $user->email }}
+                                    @if($user->email_verified_at)
+                                        <span title="Email vérifié le {{ $user->email_verified_at->format('d/m/Y') }}" style="display:inline-flex;align-items:center;gap:0.25rem;margin-top:0.25rem;font-size:0.72rem;font-weight:600;color:#166534;">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                            Email vérifié
+                                        </span>
+                                    @else
+                                        <span title="Cet utilisateur ne peut pas lire tant que son email n'est pas vérifié" style="display:inline-flex;align-items:center;gap:0.25rem;margin-top:0.25rem;font-size:0.72rem;font-weight:600;color:var(--cardinal);">
+                                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                                            Email NON vérifié
+                                        </span>
+                                    @endif
+                                </td>
                                 <td><span class="badge {{ $user->is_admin ? 'admin' : 'user' }}">{{ $user->is_admin ? 'Admin' : 'Membre' }}</span></td>
                                 <td>
-                                    <div style="display:flex;align-items:center;gap:0.4rem;">
+                                    <div style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+                                        @unless($user->email_verified_at)
+                                            <form method="POST" action="{{ route('admin.users.verify-email', $user) }}">
+                                                @csrf @method('PATCH')
+                                                <button type="submit" class="btn-primary btn-xs" title="Débloquer l'accès à la lecture en validant l'email">✓ Valider l'email</button>
+                                            </form>
+                                        @endunless
                                         <form method="POST" action="{{ route('admin.users.toggle-admin', $user) }}">
                                             @csrf @method('PATCH')
                                             <button type="submit" class="btn-ghost btn-xs">{{ $user->is_admin ? '↓ Retirer Admin' : '↑ Nommer Admin' }}</button>
@@ -590,13 +623,31 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <h3>Ajouter un e-Livre</h3>
                 <button type="button" class="btn-close" @click="closeModals()">×</button>
             </div>
-            <form method="POST" action="{{ route('admin.ebooks.store') }}" enctype="multipart/form-data" x-data="{ free: false }">
+            <form method="POST" action="{{ route('admin.ebooks.store') }}" enctype="multipart/form-data" x-data="{ free: false, dragFrom: null, sommaire: [{title:'',subtitle:'',page:''}] }">
                 @csrf
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" required placeholder="Titre de la publication"></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required placeholder="Description…"></textarea></div>
                 <div class="admin-field">
-                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(optionnel — une entrée par ligne ; ajoutez le n° de page à la fin pour le saut de page, ex. « Introduction 5 »)</small></label>
-                    <textarea name="sommaire" rows="4" placeholder="Introduction 3&#10;Chapitre 1 — Origines 8&#10;Chapitre 2 — Traditions 21"></textarea>
+                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(optionnel — un titre, un sous-titre facultatif et le n° de page pour chaque entrée)</small></label>
+                    @include('admin.partials.sommaire-fields')
+                </div>
+                <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
+                    <input id="add_is_transandans" name="is_transandans" type="checkbox" value="1" style="width:auto;margin:0;">
+                    <label for="add_is_transandans" style="margin:0;cursor:pointer;">Numéro de la <strong>Revue Transandans</strong> <small style="color:var(--text-muted);font-weight:400;">(ajoute le filtre dans le catalogue)</small></label>
+                </div>
+                <div class="admin-form-row">
+                    <div class="admin-field">
+                        <label>Statut</label>
+                        <select name="status">
+                            <option value="published">Publié</option>
+                            <option value="draft">Brouillon</option>
+                            <option value="archived">Archivé</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label>Date de publication <small style="color:var(--text-muted);font-weight:400;">(vide = immédiat ; date future = programmé)</small></label>
+                        <input type="date" name="published_date">
+                    </div>
                 </div>
                 <div class="admin-field">
                     <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
@@ -615,6 +666,10 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                     <div class="admin-field"><label>Prix (€) *</label><input name="price" type="number" step="0.01" min="0" :required="!free" placeholder="0.00"></div>
                     <div class="admin-field"><label>Lien HelloAsso</label><input name="helloasso_url" type="url" placeholder="https://…"></div>
                 </div>
+                <div class="admin-field" x-show="!free" x-cloak>
+                    <label>Lien de paiement SumUp <small style="color:var(--text-muted);font-weight:400;">(repli si l'API SumUp n'est pas configurée — ouvre le paiement carte)</small></label>
+                    <input name="sumup_url" type="url" placeholder="https://pay.sumup.com/b2c/…">
+                </div>
                 <div class="admin-form-row">
                     <div class="admin-field"><label>Fichier PDF *</label><input name="pdf" type="file" accept="application/pdf" required></div>
                     <div class="admin-field"><label>Couverture</label><input name="cover" type="file" accept="image/*"></div>
@@ -631,13 +686,31 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <h3 x-text="editEbook ? 'Modifier — ' + editEbook.title : 'Modifier'">Modifier</h3>
                 <button type="button" class="btn-close" @click="closeModals()">×</button>
             </div>
-            <form :action="editAction" method="POST" enctype="multipart/form-data" x-data="{ free: false, editCategory: '' }" x-effect="free = !!(editEbook && editEbook.is_free); editCategory = editEbook && editEbook.category_id ? String(editEbook.category_id) : ''">
+            <form :action="editAction" method="POST" enctype="multipart/form-data" x-data="{ free: false, editCategory: '', dragFrom: null, sommaire: [{title:'',subtitle:'',page:''}] }" x-effect="free = !!(editEbook && editEbook.is_free); editCategory = editEbook && editEbook.category_id ? String(editEbook.category_id) : ''; sommaire = (editEbook && editEbook.sommaire_items && editEbook.sommaire_items.length) ? JSON.parse(JSON.stringify(editEbook.sommaire_items)) : [{title:'',subtitle:'',page:''}]">
                 @csrf @method('PATCH')
                 <div class="admin-field"><label>Titre *</label><input name="title" type="text" :value="editEbook ? editEbook.title : ''" required></div>
                 <div class="admin-field"><label>Résumé *</label><textarea name="description" rows="3" required x-effect="$el.value = editEbook ? editEbook.description : ''"></textarea></div>
                 <div class="admin-field">
-                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(une entrée par ligne ; n° de page en fin de ligne pour le saut)</small></label>
-                    <textarea name="sommaire" rows="4" placeholder="Introduction 3&#10;Chapitre 1 8" x-effect="$el.value = editEbook ? (editEbook.sommaire || '') : ''"></textarea>
+                    <label>Sommaire <small style="color:var(--text-muted);font-weight:400;">(un titre, un sous-titre facultatif et le n° de page pour chaque entrée)</small></label>
+                    @include('admin.partials.sommaire-fields')
+                </div>
+                <div class="admin-field" style="display:flex;align-items:center;gap:0.5rem;">
+                    <input id="edit_is_transandans" name="is_transandans" type="checkbox" value="1" style="width:auto;margin:0;" :checked="editEbook && editEbook.is_transandans">
+                    <label for="edit_is_transandans" style="margin:0;cursor:pointer;">Numéro de la <strong>Revue Transandans</strong></label>
+                </div>
+                <div class="admin-form-row">
+                    <div class="admin-field">
+                        <label>Statut</label>
+                        <select name="status" x-effect="$el.value = editEbook ? (editEbook.status || 'published') : 'published'">
+                            <option value="published">Publié</option>
+                            <option value="draft">Brouillon</option>
+                            <option value="archived">Archivé</option>
+                        </select>
+                    </div>
+                    <div class="admin-field">
+                        <label>Date de publication <small style="color:var(--text-muted);font-weight:400;">(vide = immédiat ; date future = programmé)</small></label>
+                        <input type="date" name="published_date" x-effect="$el.value = editEbook ? (editEbook.published_date || '') : ''">
+                    </div>
                 </div>
                 <div class="admin-field">
                     <label>Thème <small style="color:var(--text-muted);font-weight:400;">(sert de filtre au catalogue)</small></label>
@@ -655,6 +728,10 @@ main > .container-custom:first-child { padding-top: 0 !important; }
                 <div class="admin-form-row" x-show="!free" x-cloak>
                     <div class="admin-field"><label>Prix (€)</label><input name="price" type="number" step="0.01" min="0" :value="editEbook ? editEbook.price : ''" :required="!free"></div>
                     <div class="admin-field"><label>Lien HelloAsso</label><input name="helloasso_url" type="url" :value="editEbook ? editEbook.helloasso_url : ''"></div>
+                </div>
+                <div class="admin-field" x-show="!free" x-cloak>
+                    <label>Lien de paiement SumUp <small style="color:var(--text-muted);font-weight:400;">(repli si l'API SumUp n'est pas configurée — ouvre le paiement carte)</small></label>
+                    <input name="sumup_url" type="url" placeholder="https://pay.sumup.com/b2c/…" :value="editEbook ? (editEbook.sumup_url || '') : ''">
                 </div>
                 <div class="admin-form-row">
                     <div class="admin-field"><label>Nouveau PDF</label><input name="pdf" type="file" accept="application/pdf"></div>

@@ -11,11 +11,16 @@ class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Ebook::with('category')->where('status', 'published');
+        $query = Ebook::with('category')->visible();
 
         // Filter by category
         if ($request->category_id) {
             $query->where('category_id', $request->category_id);
+        }
+
+        // Filter : uniquement les numéros de la Revue Transandans
+        if ($request->boolean('transandans')) {
+            $query->where('is_transandans', true);
         }
 
         // Filter by price range
@@ -61,7 +66,9 @@ class CatalogController extends Controller
 
     public function show(Ebook $ebook)
     {
-        if ($ebook->status === 'draft') {
+        // Brouillon / archivé / parution future : invisible au public,
+        // mais un admin peut prévisualiser la fiche.
+        if (!$ebook->isVisible() && !(auth()->user()?->is_admin)) {
             abort(404);
         }
 
@@ -69,7 +76,7 @@ class CatalogController extends Controller
             ? auth()->user()->purchases()->where('ebook_id', $ebook->id)->first()
             : null;
 
-        $recommendations = Ebook::where('status', 'published')
+        $recommendations = Ebook::visible()
             ->where('category_id', $ebook->category_id)
             ->where('id', '!=', $ebook->id)
             ->limit(4)

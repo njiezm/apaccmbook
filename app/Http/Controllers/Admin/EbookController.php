@@ -28,15 +28,22 @@ class EbookController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'         => ['required', 'string', 'max:255'],
-            'description'   => ['required', 'string'],
-            'sommaire'      => ['nullable', 'string', 'max:5000'],
-            'category_id'   => ['nullable', 'exists:categories,id'],
-            'is_free'       => ['sometimes', 'boolean'],
-            'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
-            'helloasso_url' => ['nullable', 'url'],
-            'pdf'           => ['required', 'file', 'mimes:pdf', 'max:512000'],
-            'cover'         => ['nullable', 'image', 'max:4096'],
+            'title'                  => ['required', 'string', 'max:255'],
+            'description'            => ['required', 'string'],
+            'sommaire_items'         => ['nullable', 'array'],
+            'sommaire_items.*.title'    => ['nullable', 'string', 'max:255'],
+            'sommaire_items.*.subtitle' => ['nullable', 'string', 'max:500'],
+            'sommaire_items.*.page'     => ['nullable', 'integer', 'min:1'],
+            'category_id'            => ['nullable', 'exists:categories,id'],
+            'is_free'                => ['sometimes', 'boolean'],
+            'is_transandans'         => ['sometimes', 'boolean'],
+            'status'                 => ['nullable', 'in:draft,published,archived'],
+            'published_date'         => ['nullable', 'date'],
+            'price'                  => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
+            'helloasso_url'          => ['nullable', 'url'],
+            'sumup_url'              => ['nullable', 'url'],
+            'pdf'                    => ['required', 'file', 'mimes:pdf', 'max:512000'],
+            'cover'                  => ['nullable', 'image', 'max:4096'],
         ]);
 
         $isFree = $request->boolean('is_free');
@@ -52,16 +59,19 @@ class EbookController extends Controller
         }
 
         $ebook = Ebook::create([
-            'title'         => $data['title'],
-            'description'   => $data['description'],
-            'sommaire'      => $data['sommaire'] ?? null,
-            'category_id'   => $data['category_id'] ?? null,
-            'is_free'       => $isFree,
-            'price'         => $isFree ? 0 : ($data['price'] ?? 0),
-            'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? null),
-            'file_path'     => $pdfPath,
-            'cover_image'   => $coverImage,
-            'status'        => 'published',
+            'title'          => $data['title'],
+            'description'    => $data['description'],
+            'sommaire'       => $this->buildSommaire($request->input('sommaire_items', [])),
+            'category_id'    => $data['category_id'] ?? null,
+            'is_free'        => $isFree,
+            'is_transandans' => $request->boolean('is_transandans'),
+            'price'          => $isFree ? 0 : ($data['price'] ?? 0),
+            'helloasso_url'  => $isFree ? null : ($data['helloasso_url'] ?? null),
+            'sumup_url'      => $isFree ? null : ($data['sumup_url'] ?? null),
+            'file_path'      => $pdfPath,
+            'cover_image'    => $coverImage,
+            'status'         => $data['status'] ?? 'published',
+            'published_date' => $data['published_date'] ?? null,
         ]);
 
         // Notifier les abonnés actifs — APRÈS la réponse HTTP et par lots,
@@ -88,15 +98,22 @@ class EbookController extends Controller
     public function update(Request $request, Ebook $ebook)
     {
         $data = $request->validate([
-            'title'         => ['required', 'string', 'max:255'],
-            'description'   => ['required', 'string'],
-            'sommaire'      => ['nullable', 'string', 'max:5000'],
-            'category_id'   => ['nullable', 'exists:categories,id'],
-            'is_free'       => ['sometimes', 'boolean'],
-            'price'         => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
-            'helloasso_url' => ['nullable', 'url'],
-            'pdf'           => ['nullable', 'file', 'mimes:pdf', 'max:512000'],
-            'cover'         => ['nullable', 'image', 'max:4096'],
+            'title'                  => ['required', 'string', 'max:255'],
+            'description'            => ['required', 'string'],
+            'sommaire_items'         => ['nullable', 'array'],
+            'sommaire_items.*.title'    => ['nullable', 'string', 'max:255'],
+            'sommaire_items.*.subtitle' => ['nullable', 'string', 'max:500'],
+            'sommaire_items.*.page'     => ['nullable', 'integer', 'min:1'],
+            'category_id'            => ['nullable', 'exists:categories,id'],
+            'is_free'                => ['sometimes', 'boolean'],
+            'is_transandans'         => ['sometimes', 'boolean'],
+            'status'                 => ['nullable', 'in:draft,published,archived'],
+            'published_date'         => ['nullable', 'date'],
+            'price'                  => ['required_without:is_free', 'nullable', 'numeric', 'min:0'],
+            'helloasso_url'          => ['nullable', 'url'],
+            'sumup_url'              => ['nullable', 'url'],
+            'pdf'                    => ['nullable', 'file', 'mimes:pdf', 'max:512000'],
+            'cover'                  => ['nullable', 'image', 'max:4096'],
         ]);
 
         $isFree = $request->boolean('is_free');
@@ -120,18 +137,40 @@ class EbookController extends Controller
         }
 
         $ebook->update([
-            'title'         => $data['title'],
-            'description'   => $data['description'],
-            'sommaire'      => $data['sommaire'] ?? null,
-            'category_id'   => $data['category_id'] ?? null,
-            'is_free'       => $isFree,
-            'price'         => $isFree ? 0 : ($data['price'] ?? 0),
-            'helloasso_url' => $isFree ? null : ($data['helloasso_url'] ?? $ebook->helloasso_url),
-            'file_path'     => $filePath,
-            'cover_image'   => $coverImage,
+            'title'          => $data['title'],
+            'description'    => $data['description'],
+            'sommaire'       => $this->buildSommaire($request->input('sommaire_items', [])),
+            'category_id'    => $data['category_id'] ?? null,
+            'is_free'        => $isFree,
+            'is_transandans' => $request->boolean('is_transandans'),
+            'price'          => $isFree ? 0 : ($data['price'] ?? 0),
+            'helloasso_url'  => $isFree ? null : ($data['helloasso_url'] ?? $ebook->helloasso_url),
+            'sumup_url'      => $isFree ? null : ($data['sumup_url'] ?? $ebook->sumup_url),
+            'status'         => $data['status'] ?? $ebook->status,
+            'published_date' => $data['published_date'] ?? null,
+            'file_path'      => $filePath,
+            'cover_image'    => $coverImage,
         ]);
 
         return back()->with('status', "Ebook « {$ebook->title} » mis à jour.");
+    }
+
+    /**
+     * Transforme les lignes du formulaire (titre / sous-titre / page) en JSON
+     * pour la colonne `sommaire`. Ignore les entrées sans titre. Renvoie null si vide.
+     */
+    private function buildSommaire(?array $items): ?string
+    {
+        $clean = collect($items ?? [])
+            ->map(fn ($i) => [
+                'title'    => trim((string) ($i['title'] ?? '')),
+                'subtitle' => trim((string) ($i['subtitle'] ?? '')),
+                'page'     => ($p = trim((string) ($i['page'] ?? ''))) !== '' ? (int) $p : null,
+            ])
+            ->filter(fn ($i) => $i['title'] !== '')
+            ->values();
+
+        return $clean->isEmpty() ? null : $clean->toJson(JSON_UNESCAPED_UNICODE);
     }
 
     public function destroy(Ebook $ebook)
@@ -196,6 +235,19 @@ class EbookController extends Controller
         $user->update(['is_admin' => !$user->is_admin]);
 
         return back()->with('status', "Le rôle administrateur de {$user->name} a été mis à jour.");
+    }
+
+    public function verifyEmail(User $user)
+    {
+        if ($user->email_verified_at) {
+            $user->update(['email_verified_at' => null]);
+
+            return back()->with('status', "L'email de {$user->name} a été marqué comme NON vérifié.");
+        }
+
+        $user->update(['email_verified_at' => now()]);
+
+        return back()->with('status', "L'email de {$user->name} a été validé — l'accès à la lecture est débloqué.");
     }
 
     public function destroyReview(\App\Models\Review $review)

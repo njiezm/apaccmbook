@@ -16,8 +16,8 @@ class SitemapController extends Controller
             ['loc' => route('contact'),       'priority' => '0.4', 'freq' => 'monthly'],
         ];
 
-        Ebook::where('status', 'published')
-            ->select(['slug', 'updated_at'])
+        Ebook::visible()
+            ->select(['slug', 'updated_at', 'status', 'published_date'])
             ->orderByDesc('updated_at')
             ->get()
             ->each(function ($ebook) use (&$urls) {

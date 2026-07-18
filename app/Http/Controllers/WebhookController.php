@@ -96,11 +96,27 @@ class WebhookController extends Controller
         $data        = $payload['data'] ?? [];
         $payer       = $data['payer'] ?? [];
         $payerEmail  = strtolower(trim($payer['email'] ?? ''));
-        $amountCents = (int) ($data['amount'] ?? 0);
+        // Montant : Payment = data.amount (centimes) ; Order = data.amount.total (centimes)
+        $amountCents = (int) (is_array($data['amount'] ?? null)
+            ? ($data['amount']['total'] ?? 0)
+            : ($data['amount'] ?? 0));
         $amount      = $amountCents / 100;
+
+        // On ne débloque QUE sur un paiement réellement encaissé.
+        $state = $data['state'] ?? null;
+        if ($state !== null && !in_array($state, ['Authorized', 'Registered', 'Processed'], true)) {
+            Log::info("HelloAsso webhook : état non validant « {$state} », ignoré.");
+            return response('OK');
+        }
 
         if (!$payerEmail) {
             Log::warning('HelloAsso webhook : email payeur absent', ['payload' => $payload]);
+            return response('OK');
+        }
+
+        // Idempotence : si ce paiement HelloAsso a déjà été traité, on s'arrête.
+        $paymentRef = isset($data['id']) ? 'helloasso-' . $data['id'] : null;
+        if ($paymentRef && Purchase::where('transaction_id', $paymentRef)->exists()) {
             return response('OK');
         }
 
@@ -132,7 +148,12 @@ class WebhookController extends Controller
         }
 
         if ($purchase) {
+            if ($paymentRef) {
+                $purchase->update(['transaction_id' => $paymentRef]);
+            }
             $this->grantAccess($purchase);
+        } else {
+            Log::info("HelloAsso webhook : aucun achat en attente pour {$payerEmail} (montant {$amount} €).");
         }
 
         return response('OK');

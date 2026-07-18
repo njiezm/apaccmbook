@@ -61,6 +61,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/checkout/{ebook}/stripe', [CheckoutController::class, 'stripe'])->name('checkout.stripe');
     Route::post('/checkout/{ebook}/paypal', [CheckoutController::class, 'paypal'])->name('checkout.paypal');
     Route::post('/checkout/{ebook}/sumup',  [CheckoutController::class, 'sumup'])->name('checkout.sumup');
+    Route::post('/checkout/{ebook}/sumup/init',   [CheckoutController::class, 'sumupInit'])->name('checkout.sumup.init');
+    Route::post('/checkout/{ebook}/sumup/verify', [CheckoutController::class, 'sumupVerify'])->name('checkout.sumup.verify');
     Route::get('/checkout/paypal/capture',  [CheckoutController::class, 'paypalCapture'])->name('checkout.paypal.capture');
     Route::get('/checkout/{ebook}/success', [CheckoutController::class, 'success'])->name('checkout.success');
     Route::get('/checkout/{ebook}/cancel',  [CheckoutController::class, 'cancel'])->name('checkout.cancel');
@@ -90,6 +92,7 @@ Route::middleware(['auth', 'can:manage-ebooks'])->prefix('admin')->name('admin.'
     Route::patch('/ebooks/{ebook:id}', [AdminEbookController::class, 'update'])->name('ebooks.update');
     Route::delete('/ebooks/{ebook:id}', [AdminEbookController::class, 'destroy'])->name('ebooks.destroy');
     Route::patch('/users/{user:id}/toggle-admin', [AdminEbookController::class, 'toggleAdmin'])->name('users.toggle-admin');
+    Route::patch('/users/{user:id}/verify-email', [AdminEbookController::class, 'verifyEmail'])->name('users.verify-email');
     Route::delete('/users/{user:id}', [AdminEbookController::class, 'destroyUser'])->name('users.destroy');
 
     // Modération des avis
